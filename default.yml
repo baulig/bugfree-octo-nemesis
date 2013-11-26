@@ -3,5 +3,6 @@ default:
   web_host: yourserver.com
   web_prefix: /web/path/on/yourserver
   squid_address: http://yourserver:port/
+  squid_address_ssl: https://yourserver:port/
   squid_user: username
   squid_pass: password

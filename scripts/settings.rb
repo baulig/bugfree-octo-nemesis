@@ -4,6 +4,8 @@ require "optparse"
 module Settings
   extend self
   
+  @parameters = [ ]
+  
   def load!(filename,config)
     sets = YAML::load_file(filename)
     set = sets[config]
@@ -17,6 +19,8 @@ module Settings
   end
   
   def define_parameter!(name,value=nil)
+    return if @parameters.include?(name)
+    @parameters.push(name)
     attr_accessor name
     define_method name do |*values|
       value = values.first
@@ -59,5 +63,16 @@ module Settings
     end
     puts "Using configuration #{config_name} from #{config_file}."
     parse_arguments!(config_file,config_name)
+  end
+  
+  def create_app_config(path)
+    File.open(path, "w") do |f|
+      f.write("<configuration>\n  <appSettings>\n")
+      @parameters.each do |name|
+        value = instance_variable_get("@#{name}")
+        f.write("    <add key=\"#{name}\" value=\"#{value}\"/>\n")
+      end
+      f.write("  </appSettings>\n</configuration>\n")
+    end
   end
 end

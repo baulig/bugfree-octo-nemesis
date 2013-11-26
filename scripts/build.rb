@@ -8,5 +8,6 @@ require File.join(thisdir, "settings.rb")
 require File.join(thisdir, "redirects.rb")
 
 Settings.init!
+Settings.create_app_config("app.config")
 
-Redirects.create_redirects
+# Redirects.create_redirects
