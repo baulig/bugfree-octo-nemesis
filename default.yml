@@ -1,0 +1,7 @@
+default:
+  web_root: /path/to/this/module/on/the/server
+  web_host: yourserver.com
+  web_prefix: /web/path/on/yourserver
+  squid_address: http://yourserver:port/
+  squid_user: username
+  squid_pass: password
