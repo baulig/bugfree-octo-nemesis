@@ -12,12 +12,15 @@ module Redirects
     create_root_htaccess(root_dir)
     create_redirect_same_server("redirects/same-server/301", 301, "www")
     create_redirect_same_server("redirects/same-server/302", 302, "www")
+    create_redirect_same_server("redirects/same-server/303", 303, "www")
     create_redirect_same_server("redirects/same-server/307", 307, "www")
     create_redirect_switch_proto("redirects/to-http/301", 301, "http", "www")
     create_redirect_switch_proto("redirects/to-http/302", 302, "http", "www")
+    create_redirect_switch_proto("redirects/to-http/303", 303, "http", "www")
     create_redirect_switch_proto("redirects/to-http/307", 307, "http", "www")
     create_redirect_switch_proto("redirects/to-https/301", 301, "https", "www")
     create_redirect_switch_proto("redirects/to-https/302", 302, "https", "www")
+    create_redirect_switch_proto("redirects/to-https/303", 303, "https", "www")
     create_redirect_switch_proto("redirects/to-https/307", 307, "https", "www")
   end
 
