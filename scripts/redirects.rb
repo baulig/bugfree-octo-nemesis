@@ -50,7 +50,7 @@ module Redirects
     Dir.mkdir(dir) unless File.directory?(dir)
     htaccess = File.join(dir, ".htaccess")
     File.open(htaccess, "w") do |f|
-      f.write("Options Indexes\n")
+      f.write("Options +Indexes\n")
     end
   end
 
