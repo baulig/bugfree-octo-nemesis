@@ -67,10 +67,17 @@ Apache
 Setup both http and https, using the same relative path - for instance `http://yourserver.com/web-tests/`
 and `https://yourserver.com/web-tests/`, both pointing to `/data/www/web-tests` on the server.
 
-You need to enable `mod_rewrite` - edit `/etc/sysconfig/apache`, add "rewrite" to `APACHE_MODULES`, then run
-`SuSEconfig` and `rcapache2 restart`.  The rewrite engine also requires `Options FollowSymLinks` to be enabled.
+You need to enable `mod_rewrite` and `mod_perl` - edit `/etc/sysconfig/apache`, add "rewrite" and "perl" to
+`APACHE_MODULES`, then run `SuSEconfig` and `rcapache2 restart`.
 
 The top-level `.htaccess` file in this module uses `RewriteCond` to disallow access to unknown subdirectories.
+
+Minimum required options:
+
+    Options FollowSymLinks
+    AddHandler cgi-script .cgi .pl
+    AllowOverride FileInfo Indexes Options=ExecCGI
+    RewriteEngine on
 
 Configure
 ---------
