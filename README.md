@@ -93,5 +93,8 @@ Client-side config
 The `./scripts/build.rb` than you ran on the server also created an `app.config` file; copy it to the
 client, then you don't need to run the script there.
 
-Launch Xamarin Studio to build the project.
+Test tests require NUnit 2.6, due to the new `[TestCase]` attribute.  There is `./scripts/setup-nunit.sh`
+which automatically downloads and unzips it into the `nunit` directory.  Run that once, then launch
+Xamarin Studio to build the project.
 
+There is also `./scripts/run-tests.sh` which launches `nunit-console` to run the tests.
