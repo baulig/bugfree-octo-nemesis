@@ -26,6 +26,8 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Collections;
+using System.Collections.Generic;
 using SD = System.Diagnostics;
 using NUnit.Framework;
 
@@ -44,9 +46,16 @@ namespace Xamarin.WebTests
 			return (flags & RequestFlags.UseProxy) != 0;
 		}
 
-		public static void Debug (string message, params object[] args)
+		public static bool AutoRedirect (RequestFlags flags)
 		{
-			SD.Debug.WriteLine (message + ": " + string.Join (" ", args));
+			return (flags & RequestFlags.AutoRedirect) != 0;
+		}
+
+		public static void Debug (string function, params object[] args)
+		{
+			var message = function + ": " + string.Join (" ", args);
+			SD.Debug.WriteLine (message);
+			Console.WriteLine (message);
 		}
 
 		public static HttpWebRequest CreateWebRequest (string path, RequestFlags flags, string method = "GET")
@@ -57,6 +66,7 @@ namespace Xamarin.WebTests
 
 			var wr = (HttpWebRequest)HttpWebRequest.Create (uri);
 			wr.Method = method;
+			wr.AllowAutoRedirect = AutoRedirect (flags);
 			if (UseProxy (flags))
 				wr.Proxy = GetProxy (flags);
 			return wr;
@@ -87,6 +97,35 @@ namespace Xamarin.WebTests
 		{
 			var response = GetResponse ("www/index.html", flags);
 			return (int)response.StatusCode;
+		}
+
+		[Category("Redirect")]
+		[TestCase(RequestFlags.None, HttpStatusCode.Moved)]
+		[TestCase(RequestFlags.UseSSL, HttpStatusCode.Moved)]
+		[TestCase(RequestFlags.UseProxy, HttpStatusCode.Moved)]
+		[TestCase(RequestFlags.UseSSL | RequestFlags.UseProxy, HttpStatusCode.Moved)]
+		public void TestRedirect (RequestFlags flags, HttpStatusCode code)
+		{
+			var path = string.Format ("redirects/same-server/{0}/index.html", (int)code);
+			var response = GetResponse (path, flags);
+			Assert.AreEqual (code, response.StatusCode, "#1");
+		}
+
+		[Category("Test")]
+		[TestCaseSource ("RedirectTests")]
+		public void TestRedirects (RedirectTest test)
+		{
+			Debug ("TEST REDIRECTS", test);
+		}
+
+		static readonly RequestFlags[] AllFlags = { RequestFlags.None, RequestFlags.UseSSL, RequestFlags.UseProxy, RequestFlags.UseSSL | RequestFlags.UseProxy };
+		static readonly HttpStatusCode[] AllRedirectCodes = { HttpStatusCode.Moved, HttpStatusCode.Found, HttpStatusCode.SeeOther, HttpStatusCode.TemporaryRedirect };
+
+		public static IEnumerable RedirectTests ()
+		{
+			foreach (var flags in AllFlags)
+				foreach (var code in AllRedirectCodes)
+					yield return new RedirectTest { Flags = flags, Code = code };
 		}
 	}
 }

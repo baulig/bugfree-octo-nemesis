@@ -1,5 +1,5 @@
 //
-// RequestFlags.cs
+// RedirectTest.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,16 +24,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Net;
+using NUnit.Framework;
 
 namespace Xamarin.WebTests
 {
-	[Flags]
-	public enum RequestFlags
+	public class RedirectTest
 	{
-		None		= 0,
-		UseSSL		= 1,
-		UseProxy	= 2,
-		AutoRedirect	= 4
+		public RequestFlags Flags {
+			get;
+			set;
+		}
+
+		public HttpStatusCode Code {
+			get; set;
+		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[RedirectTest: Flags={0}, Code={1}]", Flags, Code);
+		}
 	}
 }
 

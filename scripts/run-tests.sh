@@ -7,4 +7,4 @@ CONFIG=Debug
 
 TEST_DLL=$PROJECT/bin/$CONFIG/$PROJECT.dll
 
-$MONO --debug $NUNIT_DIR/bin/nunit-console.exe $TEST_DLL
+$MONO --debug $NUNIT_DIR/bin/nunit-console.exe $TEST_DLL $*
