@@ -1,5 +1,5 @@
 //
-// Request.cs
+// RequestFlags.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -27,35 +27,12 @@ using System;
 
 namespace Xamarin.WebTests
 {
-	public class Request
+	[Flags]
+	public enum RequestFlags
 	{
-		public bool UseSSL {
-			get; set;
-		}
-
-		public bool UseProxy {
-			get; set;
-		}
-
-		string method = "GET";
-		public string Method {
-			get { return method; }
-			set { method = value; }
-		}
-
-		public string Path {
-			get; set;
-		}
-
-		public Request (string path)
-		{
-			Path = path;
-		}
-
-		public override string ToString ()
-		{
-			return string.Format ("[Request: UseSSL={0}, UseProxy={1}, Method={2}, Path={3}]", UseSSL, UseProxy, Method, Path);
-		}
+		None		= 0,
+		UseSSL		= 1,
+		UseProxy	= 2
 	}
 }
 

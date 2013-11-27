@@ -26,6 +26,7 @@
 using System;
 using System.IO;
 using System.Net;
+using SD = System.Diagnostics;
 using NUnit.Framework;
 
 namespace Xamarin.WebTests
@@ -33,29 +34,44 @@ namespace Xamarin.WebTests
 	[TestFixture]
 	public class WebRequests
 	{
-		public static HttpWebRequest CreateWebRequest (Request request)
+		public static bool UseSSL (RequestFlags flags)
 		{
-			var proto = request.UseSSL ? "https" : "http";
-			var path = Path.Combine (Settings.WebPrefix, request.Path);
-			var uri = string.Format ("{0}://{1}{2}", proto, Settings.WebHost, path);
+			return (flags & RequestFlags.UseSSL) != 0;
+		}
+
+		public static bool UseProxy (RequestFlags flags)
+		{
+			return (flags & RequestFlags.UseProxy) != 0;
+		}
+
+		public static void Debug (string message, params object[] args)
+		{
+			SD.Debug.WriteLine (message + ": " + string.Join (" ", args));
+		}
+
+		public static HttpWebRequest CreateWebRequest (string path, RequestFlags flags, string method = "GET")
+		{
+			var proto = UseSSL (flags) ? "https" : "http";
+			var uri = string.Format ("{0}://{1}{2}{3}", proto, Settings.WebHost, Settings.WebPrefix, path);
+			Debug ("CreateWebRequest", uri, flags);
 
 			var wr = (HttpWebRequest)HttpWebRequest.Create (uri);
-			wr.Method = request.Method;
-			if (request.UseProxy)
-				wr.Proxy = GetProxy (request.UseSSL);
+			wr.Method = method;
+			if (UseProxy (flags))
+				wr.Proxy = GetProxy (flags);
 			return wr;
 		}
 
-		static IWebProxy GetProxy (bool ssl)
+		static IWebProxy GetProxy (RequestFlags flags)
 		{
-			var proxy = new WebProxy (ssl ? Settings.SquidAddressSSL : Settings.SquidAddress);
+			var proxy = new WebProxy (UseSSL (flags) ? Settings.SquidAddressSSL : Settings.SquidAddress);
 			proxy.Credentials = new NetworkCredential (Settings.SquidUser, Settings.SquidPass);
 			return proxy;
 		}
 
-		public static HttpWebResponse GetResponse (Request request)
+		public static HttpWebResponse GetResponse (string path, RequestFlags flags, string method = "GET")
 		{
-			return GetResponse (CreateWebRequest (request));
+			return GetResponse (CreateWebRequest (path, flags, method));
 		}
 
 		public static HttpWebResponse GetResponse (HttpWebRequest request)
@@ -63,21 +79,13 @@ namespace Xamarin.WebTests
 			return (HttpWebResponse)request.GetResponse ();
 		}
 
-		public static void RunWebRequest (Request request)
+		[TestCase(RequestFlags.None, ExpectedResult = 200)]
+		[TestCase(RequestFlags.UseSSL, ExpectedResult = 200)]
+		[TestCase(RequestFlags.UseProxy, ExpectedResult = 200)]
+		[TestCase(RequestFlags.UseSSL | RequestFlags.UseProxy, ExpectedResult = 200)]
+		public int TestGet (RequestFlags flags)
 		{
-			var wr = CreateWebRequest (request);
-			var response = GetResponse (wr);
-			Console.WriteLine ("RUN: {0} {1}", request, response.StatusCode);
-		}
-
-		[TestCase(false, false, ExpectedResult = 200)]
-		[TestCase(true, false, ExpectedResult = 200)]
-		[TestCase(false, true, ExpectedResult = 200)]
-		[TestCase(true, true, ExpectedResult = 200)]
-		public int TestGet (bool ssl, bool proxy)
-		{
-			var request = new Request ("www/index.html") { UseSSL = ssl, UseProxy = proxy };
-			var response = GetResponse (request);
+			var response = GetResponse ("www/index.html", flags);
 			return (int)response.StatusCode;
 		}
 	}
