@@ -76,7 +76,7 @@ Minimum required options:
 
     Options FollowSymLinks
     AddHandler cgi-script .cgi .pl
-    AllowOverride FileInfo Indexes Options=ExecCGI
+    AllowOverride FileInfo Indexes Options=ExecCGI,Indexes
     RewriteEngine on
 
 Configure

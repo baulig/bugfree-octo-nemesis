@@ -1,2 +1,2 @@
 RewriteEngine on
-RewriteRule !^(redirects|www|cgi-bin)/.*$ - [F]
+RewriteRule !^(redirects|www)/.*$ - [F]
