@@ -26,17 +26,18 @@
 using System;
 using System.IO;
 using System.Net;
+using NUnit.Framework;
 
 namespace Xamarin.WebTests
 {
-	public static class WebRequests
+	[TestFixture]
+	public class WebRequests
 	{
 		public static HttpWebRequest CreateWebRequest (Request request)
 		{
 			var proto = request.UseSSL ? "https" : "http";
 			var path = Path.Combine (Settings.WebPrefix, request.Path);
 			var uri = string.Format ("{0}://{1}{2}", proto, Settings.WebHost, path);
-			Console.WriteLine (uri);
 
 			var wr = (HttpWebRequest)HttpWebRequest.Create (uri);
 			wr.Method = request.Method;
@@ -52,6 +53,11 @@ namespace Xamarin.WebTests
 			return proxy;
 		}
 
+		public static HttpWebResponse GetResponse (Request request)
+		{
+			return GetResponse (CreateWebRequest (request));
+		}
+
 		public static HttpWebResponse GetResponse (HttpWebRequest request)
 		{
 			return (HttpWebResponse)request.GetResponse ();
@@ -62,6 +68,17 @@ namespace Xamarin.WebTests
 			var wr = CreateWebRequest (request);
 			var response = GetResponse (wr);
 			Console.WriteLine ("RUN: {0} {1}", request, response.StatusCode);
+		}
+
+		[TestCase(false, false, ExpectedResult = 200)]
+		[TestCase(true, false, ExpectedResult = 200)]
+		[TestCase(false, true, ExpectedResult = 200)]
+		[TestCase(true, true, ExpectedResult = 200)]
+		public int TestGet (bool ssl, bool proxy)
+		{
+			var request = new Request ("www/index.html") { UseSSL = ssl, UseProxy = proxy };
+			var response = GetResponse (request);
+			return (int)response.StatusCode;
 		}
 	}
 }
