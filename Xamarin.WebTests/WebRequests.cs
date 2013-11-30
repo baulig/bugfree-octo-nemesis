@@ -81,7 +81,9 @@ namespace Xamarin.WebTests
 
 		public static HttpWebResponse GetResponse (string path, RequestFlags flags, string method = "GET")
 		{
-			return GetResponse (CreateWebRequest (path, flags, method));
+			var request = CreateWebRequest (path, flags, method);
+			request.Timeout = 2500;
+			return GetResponse (request);
 		}
 
 		public static HttpWebResponse GetResponse (HttpWebRequest request)
@@ -89,33 +91,55 @@ namespace Xamarin.WebTests
 			return (HttpWebResponse)request.GetResponse ();
 		}
 
-		[TestCase(RequestFlags.None, ExpectedResult = 200)]
-		[TestCase(RequestFlags.UseSSL, ExpectedResult = 200)]
-		[TestCase(RequestFlags.UseProxy, ExpectedResult = 200)]
-		[TestCase(RequestFlags.UseSSL | RequestFlags.UseProxy, ExpectedResult = 200)]
-		public int TestGet (RequestFlags flags)
+		[Category("Simple")]
+		[TestCaseSource("AllFlags")]
+		public void TestGet (RequestFlags flags)
 		{
 			var response = GetResponse ("www/index.html", flags);
-			return (int)response.StatusCode;
+			try {
+				Assert.AreEqual (HttpStatusCode.OK, response.StatusCode);
+			} finally {
+				response.Close ();
+			}
 		}
 
 		[Category("Redirect")]
-		[TestCase(RequestFlags.None, HttpStatusCode.Moved)]
-		[TestCase(RequestFlags.UseSSL, HttpStatusCode.Moved)]
-		[TestCase(RequestFlags.UseProxy, HttpStatusCode.Moved)]
-		[TestCase(RequestFlags.UseSSL | RequestFlags.UseProxy, HttpStatusCode.Moved)]
-		public void TestRedirect (RequestFlags flags, HttpStatusCode code)
+		[TestCaseSource ("RedirectTests")]
+		public void TestRedirect (RedirectTest test)
 		{
-			var path = string.Format ("redirects/same-server/{0}/index.html", (int)code);
-			var response = GetResponse (path, flags);
-			Assert.AreEqual (code, response.StatusCode, "#1");
+			var path = string.Format ("redirects/same-server/{0}/index.html", (int)test.Code);
+			var response = GetResponse (path, test.Flags);
+			try {
+				Assert.AreEqual (test.Code, response.StatusCode, "#1");
+			} finally {
+				response.Close ();
+			}
+		}
+
+		[Category("FollowRedirect")]
+		[TestCaseSource ("RedirectTests")]
+		public void FollowRedirect (RedirectTest test)
+		{
+			var path = string.Format ("redirects/same-server/{0}/index.html", (int)test.Code);
+			var response = GetResponse (path, test.Flags | RequestFlags.AutoRedirect);
+			try {
+				Assert.AreEqual (HttpStatusCode.OK, response.StatusCode, "#1");
+			} finally {
+				response.Close ();
+			}
 		}
 
 		[Category("Test")]
-		[TestCaseSource ("RedirectTests")]
-		public void TestRedirects (RedirectTest test)
+		[TestCaseSource ("Broken")]
+		public void NotWorking (RedirectTest test)
 		{
-			Debug ("TEST REDIRECTS", test);
+			var path = string.Format ("redirects/same-server/{0}/index.html", (int)test.Code);
+			var response = GetResponse (path, test.Flags);
+			try {
+				Assert.AreEqual (test.Code, response.StatusCode, "#1");
+			} finally {
+				response.Close ();
+			}
 		}
 
 		static readonly RequestFlags[] AllFlags = { RequestFlags.None, RequestFlags.UseSSL, RequestFlags.UseProxy, RequestFlags.UseSSL | RequestFlags.UseProxy };
@@ -126,6 +150,11 @@ namespace Xamarin.WebTests
 			foreach (var flags in AllFlags)
 				foreach (var code in AllRedirectCodes)
 					yield return new RedirectTest { Flags = flags, Code = code };
+		}
+
+		public static IEnumerable Broken ()
+		{
+			yield return new RedirectTest { Flags = RequestFlags.UseProxy, Code = HttpStatusCode.Redirect };
 		}
 	}
 }
