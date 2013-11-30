@@ -5,6 +5,7 @@ NUNIT_DIR=`cd nunit && pwd`
 PROJECT=Xamarin.WebTests
 CONFIG=Debug
 
-TEST_DLL=$PROJECT/bin/$CONFIG/$PROJECT.dll
+TEST_EXE=$PROJECT/bin/$CONFIG/$PROJECT.exe
 
-$MONO --debug $NUNIT_DIR/bin/nunit-console.exe $TEST_DLL $*
+$MONO --debug $TEST_EXE $*
+
