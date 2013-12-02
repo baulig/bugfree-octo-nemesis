@@ -1,7 +1,6 @@
 #!/bin/sh
 
 MONO=/usr/bin/mono
-NUNIT_DIR=`cd nunit && pwd`
 PROJECT=Xamarin.WebTests
 CONFIG=Debug
 
