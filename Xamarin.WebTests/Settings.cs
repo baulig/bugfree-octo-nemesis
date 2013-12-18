@@ -30,7 +30,16 @@ namespace Xamarin.WebTests
 {
 	public static class Settings
 	{
-		public static readonly string WebRoot;
+		static readonly string webRoot;
+
+		public static string WebRoot {
+			get {
+				if (string.IsNullOrEmpty (webRoot))
+					throw new InvalidOperationException ();
+				return webRoot;
+			}
+		}
+
 		public static readonly string WebHost;
 		public static readonly string WebPrefix;
 		public static readonly string SquidAddress;
@@ -40,7 +49,7 @@ namespace Xamarin.WebTests
 
 		static Settings ()
 		{
-			WebRoot = GetOption ("web_root");
+			webRoot = GetOption ("web_root", true);
 			WebHost = GetOption ("web_host");
 			WebPrefix = GetOption ("web_prefix");
 			SquidAddress = GetOption ("squid_address");
