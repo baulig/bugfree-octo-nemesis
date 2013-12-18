@@ -45,14 +45,14 @@ namespace Xamarin.WebTests
 			WebPrefix = GetOption ("web_prefix");
 			SquidAddress = GetOption ("squid_address");
 			SquidAddressSSL = GetOption ("squid_address_ssl");
-			SquidUser = GetOption ("squid_user");
-			SquidPass = GetOption ("squid_pass");
+			SquidUser = GetOption ("squid_user", true);
+			SquidPass = GetOption ("squid_pass", true);
 		}
 
-		static string GetOption (string name)
+		static string GetOption (string name, bool optional = false)
 		{
 			var value = ConfigurationManager.AppSettings [name];
-			if (value == null)
+			if (!optional && value == null)
 				throw new InvalidOperationException ();
 			return value;
 		}

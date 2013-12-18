@@ -75,7 +75,8 @@ namespace Xamarin.WebTests
 		static IWebProxy GetProxy (RequestFlags flags)
 		{
 			var proxy = new WebProxy (UseSSL (flags) ? Settings.SquidAddressSSL : Settings.SquidAddress);
-			proxy.Credentials = new NetworkCredential (Settings.SquidUser, Settings.SquidPass);
+			if (!string.IsNullOrEmpty (Settings.SquidUser))
+				proxy.Credentials = new NetworkCredential (Settings.SquidUser, Settings.SquidPass);
 			return proxy;
 		}
 
