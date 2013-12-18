@@ -46,6 +46,7 @@
     <Compile Include="RequestFlags.cs" />
     <Compile Include="RedirectTest.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="GetPuppy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
