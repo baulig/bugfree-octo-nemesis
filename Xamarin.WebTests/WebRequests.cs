@@ -62,7 +62,7 @@ namespace Xamarin.WebTests
 		{
 			var proto = UseSSL (flags) ? "https" : "http";
 			var uri = string.Format ("{0}://{1}{2}{3}", proto, Settings.WebHost, Settings.WebPrefix, path);
-			Debug ("CreateWebRequest", uri, flags);
+			// Debug ("CreateWebRequest", uri, flags);
 
 			var wr = (HttpWebRequest)HttpWebRequest.Create (uri);
 			wr.Method = method;

@@ -47,6 +47,7 @@
     <Compile Include="RedirectTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="GetPuppy.cs" />
+    <Compile Include="MainClass.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

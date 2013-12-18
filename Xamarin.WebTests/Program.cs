@@ -75,7 +75,11 @@ namespace NUnitLite.Tests
         //             over all includes
         public static void Main(string[] args)
         {
+#if NUNIT
             new TextUI().Execute(args);
+#else
+			Xamarin.WebTests.MainClass.Run ();
+#endif
         }
     }
 }
