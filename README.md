@@ -79,6 +79,9 @@ Minimum required options:
     AllowOverride FileInfo Indexes Options=ExecCGI,Indexes
     RewriteEngine on
 
+For the connection reuse tests, edit `/etc/apache2/server-tuning.conf` and set `MaxKeepAliveRequests` to either
+0 or a high value.
+
 Configure
 ---------
 
