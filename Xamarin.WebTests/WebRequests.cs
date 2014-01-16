@@ -164,17 +164,23 @@ namespace Xamarin.WebTests
 					break;
 			}
 
+#if NUNIT
 			Assert.That (connections, Is.EqualTo (1), "#1");
+#else
+			if (connections != 1)
+				throw new InvalidOperationException ();
+#endif
 		}
 
 		public static IEnumerable ReuseTests ()
 		{
-			foreach (var flags in AllFlags)
+			foreach (var flags in NoProxyFlags)
 				foreach (var mode in AllTransferModes)
 					yield return new ReuseTest (flags, mode, 100);
 		}
 
 		static readonly RequestFlags[] AllFlags = { RequestFlags.None, RequestFlags.UseSSL, RequestFlags.UseProxy, RequestFlags.UseSSL | RequestFlags.UseProxy };
+		static readonly RequestFlags[] NoProxyFlags = { RequestFlags.None, RequestFlags.UseSSL };
 		static readonly HttpStatusCode[] AllRedirectCodes = { HttpStatusCode.Moved, HttpStatusCode.Found, HttpStatusCode.SeeOther, HttpStatusCode.TemporaryRedirect };
 		static readonly TransferMode[] AllTransferModes = { TransferMode.Default, TransferMode.ContentLength, TransferMode.Chunked };
 

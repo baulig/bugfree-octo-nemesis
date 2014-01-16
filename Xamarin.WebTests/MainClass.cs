@@ -35,8 +35,13 @@ namespace Xamarin.WebTests
 	{
 		public static void Run ()
 		{
-			// WildcardRun ("about.ph");
-			GetPuppySsl ();
+			RunTheTests ();
+		}
+
+		static void RunTheTests ()
+		{
+			var test = new WebRequests ();
+			test.TestReuse (new ReuseTest (RequestFlags.None, TransferMode.ContentLength, 25, 5));
 		}
 
 		static void GetPuppySsl ()
