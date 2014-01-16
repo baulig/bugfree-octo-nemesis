@@ -1,5 +1,5 @@
-﻿//
-// MainClass.cs
+//
+// RequestFlags.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,53 +24,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.IO;
-using System.Net;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.Client
 {
-	using Client;
-
-	public static class MainClass
+	[Flags]
+	public enum RequestFlags
 	{
-		public static void Run ()
-		{
-			// WildcardRun ("about.ph");
-			GetPuppySsl ();
-		}
-
-		static void GetPuppySsl ()
-		{
-			var start = DateTime.Now;
-			int port = 0;
-
-			for (int i = 0; i < 1000; i++) {
-				var puppy = GetPuppy.Get (RequestFlags.UseSSL, TransferMode.Chunked);
-				if (puppy.RemotePort != port) {
-					Console.WriteLine ("NEW PORT: #{0}: {1}", i, puppy);
-					port = puppy.RemotePort;
-					continue;
-				}
-				if ((i % 10) == 0)
-					Console.WriteLine ("#{0}: {1}", i, puppy);
-			}
-
-			var end = DateTime.Now;
-			Console.WriteLine ("Total time: {0}", end - start);
-		}
-
-		static void WildcardRun (string rootDomain)
-		{
-			for (int i = 0; i < 1000; i++) {
-				var url = string.Format ("http://{0}.{1}/", i, rootDomain);
-				var request = HttpWebRequest.Create (url) as HttpWebRequest;
-				var response = request.GetResponse () as HttpWebResponse;
-				Console.WriteLine ("TEST: {0} {1}", i, response.StatusCode);
-				using (var stream = new StreamReader (response.GetResponseStream ())) {
-					stream.ReadToEnd ();
-				}
-			}
-		}
+		None		= 0,
+		UseSSL		= 1,
+		UseProxy	= 2,
+		AutoRedirect	= 4
 	}
 }
 

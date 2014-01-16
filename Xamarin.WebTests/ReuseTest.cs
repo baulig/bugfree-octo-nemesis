@@ -1,10 +1,10 @@
 ﻿//
-// MainClass.cs
+// ReuseTest.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,52 +24,44 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.IO;
-using System.Net;
 
 namespace Xamarin.WebTests
 {
 	using Client;
 
-	public static class MainClass
+	public class ReuseTest
 	{
-		public static void Run ()
-		{
-			// WildcardRun ("about.ph");
-			GetPuppySsl ();
+		public RequestFlags Flags {
+			get;
+			private set;
 		}
 
-		static void GetPuppySsl ()
-		{
-			var start = DateTime.Now;
-			int port = 0;
-
-			for (int i = 0; i < 1000; i++) {
-				var puppy = GetPuppy.Get (RequestFlags.UseSSL, TransferMode.Chunked);
-				if (puppy.RemotePort != port) {
-					Console.WriteLine ("NEW PORT: #{0}: {1}", i, puppy);
-					port = puppy.RemotePort;
-					continue;
-				}
-				if ((i % 10) == 0)
-					Console.WriteLine ("#{0}: {1}", i, puppy);
-			}
-
-			var end = DateTime.Now;
-			Console.WriteLine ("Total time: {0}", end - start);
+		public TransferMode TransferMode {
+			get;
+			private set;
 		}
 
-		static void WildcardRun (string rootDomain)
+		public int Count {
+			get;
+			private set;
+		}
+
+		public int Limit {
+			get;
+			private set;
+		}
+
+		public ReuseTest (RequestFlags flags, TransferMode mode, int count, int limit = 10)
 		{
-			for (int i = 0; i < 1000; i++) {
-				var url = string.Format ("http://{0}.{1}/", i, rootDomain);
-				var request = HttpWebRequest.Create (url) as HttpWebRequest;
-				var response = request.GetResponse () as HttpWebResponse;
-				Console.WriteLine ("TEST: {0} {1}", i, response.StatusCode);
-				using (var stream = new StreamReader (response.GetResponseStream ())) {
-					stream.ReadToEnd ();
-				}
-			}
+			Flags = flags;
+			TransferMode = mode;
+			Count = count;
+			Limit = limit;
+		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[ReuseTest: Flags={0}, TransferMode={1}, Count={2}]", Flags, TransferMode, Count);
 		}
 	}
 }

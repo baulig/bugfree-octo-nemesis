@@ -29,6 +29,8 @@ using NUnit.Framework;
 
 namespace Xamarin.WebTests
 {
+	using Client;
+
 	public class RedirectTest
 	{
 		public RequestFlags Flags {

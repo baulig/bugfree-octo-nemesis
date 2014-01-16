@@ -28,7 +28,7 @@ using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.Client
 {
 	public class GetPuppy
 	{
@@ -48,6 +48,11 @@ namespace Xamarin.WebTests
 		}
 
 		public int RemotePort {
+			get;
+			private set;
+		}
+
+		public TransferMode TransferMode {
 			get;
 			private set;
 		}
@@ -92,11 +97,23 @@ namespace Xamarin.WebTests
 			return puppy;
 		}
 
-		public static GetPuppy Get (RequestFlags flags)
+		public static GetPuppy Get (RequestFlags flags, TransferMode mode)
 		{
-			var request = WebRequests.CreateWebRequest ("www/cgi-bin/get-puppy.pl", flags);
+			var request = WebRequests.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
 			var response = (HttpWebResponse)request.GetResponse ();
 			return Read (response);
+		}
+
+		static string GetModeString (TransferMode mode)
+		{
+			switch (mode) {
+			case TransferMode.Chunked:
+				return "chunked";
+			case TransferMode.ContentLength:
+				return "length";
+			default:
+				return "default";
+			}
 		}
 
 		public override string ToString ()

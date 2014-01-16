@@ -33,6 +33,8 @@ using NUnit.Framework;
 
 namespace Xamarin.WebTests
 {
+	using Client;
+
 	[TestFixture]
 	public class WebRequests
 	{
@@ -143,8 +145,38 @@ namespace Xamarin.WebTests
 			}
 		}
 
+		[Category("Reuse")]
+		[TestCaseSource ("ReuseTests")]
+		public void TestReuse (ReuseTest test)
+		{
+			int port = -1;
+			int connections = 0;
+			Debug ("TestReuse", test);
+			for (int i = 0; i < test.Count; i++) {
+				var puppy = GetPuppy.Get (test.Flags, test.TransferMode);
+				if (puppy.RemotePort == port)
+					continue;
+				if (i > 0)
+					Debug ("TestReuse - NEW CONNECTION", i, port, puppy);
+				connections++;
+				port = puppy.RemotePort;
+				if (connections > test.Limit)
+					break;
+			}
+
+			Assert.That (connections, Is.EqualTo (1), "#1");
+		}
+
+		public static IEnumerable ReuseTests ()
+		{
+			foreach (var flags in AllFlags)
+				foreach (var mode in AllTransferModes)
+					yield return new ReuseTest (flags, mode, 100);
+		}
+
 		static readonly RequestFlags[] AllFlags = { RequestFlags.None, RequestFlags.UseSSL, RequestFlags.UseProxy, RequestFlags.UseSSL | RequestFlags.UseProxy };
 		static readonly HttpStatusCode[] AllRedirectCodes = { HttpStatusCode.Moved, HttpStatusCode.Found, HttpStatusCode.SeeOther, HttpStatusCode.TemporaryRedirect };
+		static readonly TransferMode[] AllTransferModes = { TransferMode.Default, TransferMode.ContentLength, TransferMode.Chunked };
 
 		public static IEnumerable RedirectTests ()
 		{
