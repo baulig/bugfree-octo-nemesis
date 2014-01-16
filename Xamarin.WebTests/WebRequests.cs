@@ -176,7 +176,7 @@ namespace Xamarin.WebTests
 		{
 			foreach (var flags in NoProxyFlags)
 				foreach (var mode in AllTransferModes)
-					yield return new ReuseTest (flags, mode, 100);
+					yield return new ReuseTest (flags, mode, 250);
 		}
 
 		static readonly RequestFlags[] AllFlags = { RequestFlags.None, RequestFlags.UseSSL, RequestFlags.UseProxy, RequestFlags.UseSSL | RequestFlags.UseProxy };
