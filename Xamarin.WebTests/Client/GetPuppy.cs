@@ -32,6 +32,11 @@ namespace Xamarin.WebTests.Client
 {
 	public class GetPuppy
 	{
+		public Uri Uri {
+			get;
+			private set;
+		}
+
 		public string Method {
 			get;
 			private set;
@@ -67,6 +72,8 @@ namespace Xamarin.WebTests.Client
 				throw new InvalidOperationException ();
 
 			var puppy = new GetPuppy ();
+
+			puppy.Uri = response.ResponseUri;
 
 			using (var reader = new StreamReader (response.GetResponseStream ())) {
 				string line;

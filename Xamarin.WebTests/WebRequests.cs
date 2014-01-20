@@ -26,10 +26,13 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using SD = System.Diagnostics;
+#if NUNIT
 using NUnit.Framework;
+#endif
 
 namespace Xamarin.WebTests
 {
@@ -170,6 +173,39 @@ namespace Xamarin.WebTests
 			if (connections != 1)
 				throw new InvalidOperationException ();
 #endif
+		}
+
+		[Category("Connections")]
+		[TestCaseSource ("ReuseTests")]
+		public void TestConnectionCount (ReuseTest test)
+		{
+			var puppy = GetPuppy.Get (test.Flags, test.TransferMode);
+			var sp = ServicePointManager.FindServicePoint (puppy.Uri);
+			Assert.That (sp, Is.Not.Null, "#1");
+			Assert.That (sp.CurrentConnections, Is.EqualTo (1), "#2");
+
+			sp.CloseConnectionGroup (string.Empty);
+			Assert.That (sp.CurrentConnections, Is.EqualTo (0), "#3");
+		}
+
+		[Category("Connections")]
+		[TestCaseSource ("ReuseTests")]
+		public void TestConnectionIdleTime (ReuseTest test)
+		{
+			var puppy = GetPuppy.Get (test.Flags, test.TransferMode);
+			var sp = ServicePointManager.FindServicePoint (puppy.Uri);
+			sp.MaxIdleTime = 2500;
+
+			Assert.That (sp, Is.Not.Null, "#1");
+			Assert.That (sp.CurrentConnections, Is.EqualTo (1), "#2");
+
+			Thread.Sleep (2000);
+
+			Assert.That (sp.CurrentConnections, Is.EqualTo (1), "#3");
+
+			Thread.Sleep (600);
+
+			Assert.That (sp.CurrentConnections, Is.EqualTo (0), "#4");
 		}
 
 		public static IEnumerable ReuseTests ()
