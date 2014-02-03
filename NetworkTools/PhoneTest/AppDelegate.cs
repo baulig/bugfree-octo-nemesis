@@ -40,6 +40,7 @@ namespace Xamarin.NetworkUtils.PhoneTest
 	{
 		// class-level declarations
 		UIWindow window;
+		Settings settings;
 
 		//
 		// This method is invoked when the application has loaded and is ready to run. In this
@@ -50,13 +51,11 @@ namespace Xamarin.NetworkUtils.PhoneTest
 		//
 		public override bool FinishedLaunching (UIApplication app, NSDictionary options)
 		{
-			var root = new RootController ();
-
-			var nav = new UINavigationController (root);
-
 			window = new UIWindow (UIScreen.MainScreen.Bounds);
+
+			settings = new Settings ();
 			
-			window.RootViewController = nav;
+			window.RootViewController = new TabController (settings);
 			window.MakeKeyAndVisible ();
 
 			return true;

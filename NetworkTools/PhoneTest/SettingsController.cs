@@ -34,22 +34,13 @@ namespace Xamarin.NetworkUtils.PhoneTest
 {
 	public class SettingsController : DialogViewController
 	{
-		public readonly RootController RootController;
 		public readonly Settings Settings;
 		bool modified;
 
-		public SettingsController (RootController root)
+		public SettingsController ()
 			: base (new RootElement ("Settings"), true)
 		{
-			RootController = root;
 			Settings = new Settings ();
-
-			var settingsButton = new UIBarButtonItem (UIBarButtonSystemItem.Edit);
-			root.NavigationItem.RightBarButtonItem = settingsButton;
-
-			settingsButton.Clicked += (sender, e) => {
-				RootController.ActivateController (this);
-			};
 
 			var section = new Section ();
 			Root.Add (section);

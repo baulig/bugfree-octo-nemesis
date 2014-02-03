@@ -1,5 +1,5 @@
 ﻿//
-// RootController.cs
+// TabController.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -33,67 +33,24 @@ using MonoTouch.Dialog;
 
 namespace Xamarin.NetworkUtils.PhoneTest
 {
-	public class RootController : DialogViewController
+	public class TabController : UITabBarController
 	{
-		public readonly Settings Settings;
-		Section section;
-
-		public RootController (Settings settings)
-			: base (new RootElement ("Netstat"))
+		public TabController (Settings settings)
 		{
-			Settings = settings;
+			var socketController = new RootController (settings);
+			socketController.Title = "Sockets";
+			socketController.View.BackgroundColor = UIColor.Green;
 
-			section = new Section ();
-			Root.Add (section);
+			var settingsController = new SettingsController ();
+			settingsController.Title = "Settings";
+			settingsController.View.BackgroundColor = UIColor.Red;
 
-			RefreshRequested += (sender, e) => {
-				Populate ();
-				ReloadComplete ();
+			var tabs = new UIViewController[] {
+				socketController, settingsController
 			};
-		}
 
-		void Populate ()
-		{
-			section.Clear ();
-			foreach (var entry in ManagedNetstat.GetTcp ()) {
-				if (!Filter (entry))
-					continue;
-				var text = string.Format ("{0} - {1} - {2}", entry.LocalEndpoint, entry.RemoteEndpoint, entry.State);
-				section.Add (new StringElement (text));
-			}
-		}
-
-		bool IsLocalHost (IPAddress address)
-		{
-			var bytes = address.GetAddressBytes ();
-			if (bytes.Length != 4)
-				return false;
-			if (bytes [0] != 127)
-				return false;
-			if (bytes [1] != 0)
-				return false;
-			if (bytes [2] != 0)
-				return false;
-			if (bytes [3] != 1)
-				return false;
-			return true;
-		}
-
-		bool Filter (NetstatEntry entry)
-		{
-			if (!Settings.ShowListening && entry.State == TcpState.Listen)
-				return false;
-			if (!Settings.ShowLocal) {
-				if (IsLocalHost (entry.LocalEndpoint.Address) && IsLocalHost (entry.RemoteEndpoint.Address))
-					return false;
-			}
-			return true;
-		}
-
-		public override void ViewDidAppear (bool animated)
-		{
-			Populate ();
-			base.ViewDidAppear (animated);
+			ViewControllers = tabs;
 		}
 	}
 }
+
