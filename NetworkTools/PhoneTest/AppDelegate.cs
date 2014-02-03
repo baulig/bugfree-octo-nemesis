@@ -41,18 +41,54 @@ namespace Xamarin.NetworkUtils.PhoneTest
 		// class-level declarations
 		UIWindow window;
 
-		RootElement root;
-		DialogViewController dvc;
-
-		Section netstatSection;
-
-		void Populate ()
+		void Populate (Section section)
 		{
-			netstatSection.Clear ();
+			section.Clear ();
 			foreach (var entry in ManagedNetstat.GetTcp ()) {
 				var text = string.Format ("{0} - {1} - {2}", entry.LocalEndpoint, entry.RemoteEndpoint, entry.State);
-				netstatSection.Add (new StringElement (text));
+				section.Add (new StringElement (text));
 			}
+		}
+
+		DialogViewController CreateRoot ()
+		{
+			var netstatSection = new Section ("Open Sockets");
+
+			var root = new RootElement ("Netstat") {
+				netstatSection
+			};
+
+			var dvc = new DialogViewController (root);
+			dvc.RefreshRequested += (sender, e) => {
+				Populate (netstatSection);
+				dvc.ReloadComplete ();
+			};
+			Populate (netstatSection);
+
+			CreateSettings (dvc);
+
+			return dvc;
+		}
+
+		void CreateSettings (DialogViewController root)
+		{
+			var settingsButton = new UIBarButtonItem (UIBarButtonSystemItem.Edit);
+			root.NavigationItem.RightBarButtonItem = settingsButton;
+
+			var settingsRoot = new RootElement ("Settings");
+			var settingsDvc = new DialogViewController (settingsRoot, true);
+
+			settingsButton.Clicked += (sender, e) => {
+				root.ActivateController (settingsDvc);
+			};
+
+			var section = new Section ();
+			settingsRoot.Add (section);
+
+			var showListening = new BooleanElement ("Show listening sockets", false);
+			showListening.ValueChanged += (sender, e) => {
+			};
+			section.Add (showListening);
 		}
 
 		//
@@ -64,25 +100,13 @@ namespace Xamarin.NetworkUtils.PhoneTest
 		//
 		public override bool FinishedLaunching (UIApplication app, NSDictionary options)
 		{
-			netstatSection = new Section ("Open Sockets");
+			var root = CreateRoot ();
 
-			root = new RootElement ("Netstat") {
-				netstatSection
-			};
-
-			dvc = new DialogViewController (root);
-
-			dvc.RefreshRequested += (sender, e) => {
-				Populate ();
-				dvc.ReloadComplete ();
-			};
-
-			Populate ();
+			var nav = new UINavigationController (root);
 
 			window = new UIWindow (UIScreen.MainScreen.Bounds);
 			
-			// viewController = new PhoneTestViewController ();
-			window.RootViewController = dvc;
+			window.RootViewController = nav;
 			window.MakeKeyAndVisible ();
 
 			return true;
