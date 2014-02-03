@@ -60,113 +60,238 @@
  *	@(#)netstat.h	8.2 (Berkeley) 1/4/94
  */
 
+/*
+ * Modified 01/27/2014 by Martin Baulig <martin.baulig@xamarin.com>
+ *
+ * #include's adjusted, some structs copied from other #include's.
+ */
+
 #include <sys/cdefs.h>
 #include <sys/types.h>
 #include <stdint.h>
 
 #include <TargetConditionals.h>
 
-extern int	Aflag;	/* show addresses of protocol control block */
-extern int	aflag;	/* show all sockets (including servers) */
-extern int	bflag;	/* show i/f total bytes in/out */
-extern int	cflag;	/* show specific classq */
-extern int	dflag;	/* show i/f dropped packets */
-extern int	Fflag;	/* show i/f forwarded packets */
-#if defined(__APPLE__) && !TARGET_OS_EMBEDDED
-extern int	gflag;	/* show group (multicast) routing or stats */
+#if TARGET_OS_IPHONE
+#include <sys/socket.h>
+#if TARGET_IPHONE_SIMULATOR
+#include <sys/socketvar.h>
+#include <net/route.h>
+#include <netinet/in_pcb.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/icmp_var.h>
+#include <netinet/igmp_var.h>
+#include <netinet/ip_var.h>
+#include <netinet/tcp.h>
+#include <netinet/tcpip.h>
+#include <netinet/tcp_seq.h>
+#define TCPSTATES
+#include <netinet/tcp_fsm.h>
+#include <netinet/tcp_var.h>
+#include <netinet/udp.h>
+#include <netinet/udp_var.h>
+#else
+#include "socketvar.h"
+#include "route.h"
+#include <netinet/tcp.h>
+#include "netinet/in_pcb.h"
+#include "netinet/ip_var.h"
+#include "netinet/tcpip.h"
+#define TCPSTATES
+#include "netinet/tcp_var.h"
 #endif
-extern int	iflag;	/* show interfaces */
-extern int	lflag;	/* show routing table with use and ref */
-extern int	Lflag;	/* show size of listen queues */
-extern int	mflag;	/* show memory stats */
-extern int	nflag;	/* show addresses numerically */
-extern int	Rflag;	/* show reachability information */
-extern int	rflag;	/* show routing tables (or routing stats) */
-extern int	sflag;	/* show protocol statistics */
-extern int	prioflag; /* show packet priority  statistics */
-extern int	tflag;	/* show i/f watchdog timers */
-extern int	vflag;	/* more verbose */
-extern int	Wflag;	/* wide display */
-extern int	qflag;	/* Display ifclassq stats */
-extern int	Qflag;	/* Display opportunistic polling stats */
-extern int	xflag;	/* show extended link-layer reachability information */
-
-extern int	cq;	/* send classq index (-1 for all) */
-extern int	interval; /* repeat interval for i/f stats */
-
-extern char	*interface; /* desired i/f for stats, or NULL for all i/fs */
-extern int	unit;	/* unit number for above */
-
-extern int	af;	/* address family */
-
-extern char	*plural(int);
-extern char	*plurales(int);
-extern char	*pluralies(int);
-
-extern void	protopr(uint32_t, char *, int);
-extern void	mptcppr(uint32_t, char *, int);
-extern void	tcp_stats(uint32_t, char *, int);
-extern void	mptcp_stats(uint32_t, char *, int);
-extern void	udp_stats(uint32_t, char *, int);
-extern void	ip_stats(uint32_t, char *, int);
-extern void	icmp_stats(uint32_t, char *, int);
-extern void	igmp_stats(uint32_t, char *, int);
-extern void	arp_stats(uint32_t, char *, int);
-#ifdef IPSEC
-extern void	ipsec_stats(uint32_t, char *, int);
-#endif
-
+#else
+#include "socket.h"
+#include "socketvar.h"
+#include <net/route.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
 #ifdef INET6
-extern void	ip6_stats(uint32_t, char *, int);
-extern void	ip6_ifstats(char *);
-extern void	icmp6_stats(uint32_t, char *, int);
-extern void	icmp6_ifstats(char *);
-#ifdef notyet
-extern void	pim6_stats(uint32_t, char *, int);
-#endif
-extern void	rip6_stats(uint32_t, char *, int);
-#if defined(__APPLE__) && !TARGET_OS_EMBEDDED
-extern void	mroute6pr(void);
-extern void	mrt6_stats(void);
-#endif
-
-/* forward references */
-struct sockaddr_in6;
-struct in6_addr;
-struct sockaddr;
-
-extern char	*routename6(struct sockaddr_in6 *);
-extern char	*netname6(struct sockaddr_in6 *, struct sockaddr *);
-#endif /*INET6*/
-
-#ifdef IPSEC
-extern void	pfkey_stats(uint32_t, char *, int);
+#include <netinet/ip6.h>
+#endif /* INET6 */
+#include "in_pcb.h"
+#include <netinet/ip_icmp.h>
+#include <netinet/icmp_var.h>
+#include <netinet/igmp_var.h>
+#include <netinet/ip_var.h>
+#include <netinet/tcp.h>
+#include <netinet/tcpip.h>
+#include <netinet/tcp_seq.h>
+#define TCPSTATES
+#include <netinet/tcp_fsm.h>
+#include "tcp_var.h"
+#include <netinet/udp.h>
+#include <netinet/udp_var.h>
 #endif
 
-extern void	mbpr(void);
+#define ROUNDUP64(a) \
+((a) > 0 ? (1 + (((a) - 1) | (sizeof(uint64_t) - 1))) : sizeof(uint64_t))
+#define ADVANCE64(x, n) (((char *)x) += ROUNDUP64(n))
 
-extern void	intpr(void (*)(char *));
-extern void	intpr_ri(void (*)(char *));
-extern void	intervalpr(void (*)(uint32_t, char *, int), uint32_t,
-		    char *, int);
+#if TARGET_OS_IPHONE
 
-extern void	pr_rthdr(int);
-extern void	pr_family(int);
-extern void	rt_stats(void);
-extern void	upHex(char *);
-extern char	*routename(uint32_t);
-extern char	*netname(uint32_t, uint32_t);
-extern void	routepr(void);
+struct  xtcpcb_n {
+	u_int32_t      		xt_len;
+	u_int32_t			xt_kind;		/* XSO_TCPCB */
+	
+	u_int64_t t_segq;
+	int     t_dupacks;              /* consecutive dup acks recd */
+	
+	int t_timer[TCPT_NTIMERS_EXT];  /* tcp timers */
+	
+	int     t_state;                /* state of this connection */
+	u_int   t_flags;
+	
+	int     t_force;                /* 1 if forcing out a byte */
+	
+	tcp_seq snd_una;                /* send unacknowledged */
+	tcp_seq snd_max;                /* highest sequence number sent;
+					 * used to recognize retransmits
+					 */
+	tcp_seq snd_nxt;                /* send next */
+	tcp_seq snd_up;                 /* send urgent pointer */
+	
+	tcp_seq snd_wl1;                /* window update seg seq number */
+	tcp_seq snd_wl2;                /* window update seg ack number */
+	tcp_seq iss;                    /* initial send sequence number */
+	tcp_seq irs;                    /* initial receive sequence number */
+	
+	tcp_seq rcv_nxt;                /* receive next */
+	tcp_seq rcv_adv;                /* advertised window */
+	u_int32_t rcv_wnd;              /* receive window */
+	tcp_seq rcv_up;                 /* receive urgent pointer */
+	
+	u_int32_t snd_wnd;              /* send window */
+	u_int32_t snd_cwnd;             /* congestion-controlled window */
+	u_int32_t snd_ssthresh;         /* snd_cwnd size threshold for
+					 * for slow start exponential to
+					 * linear switch
+					 */
+	u_int   t_maxopd;               /* mss plus options */
+	
+	u_int32_t t_rcvtime;            /* time at which a packet was received */
+	u_int32_t t_starttime;          /* time connection was established */
+	int     t_rtttime;              /* round trip time */
+	tcp_seq t_rtseq;                /* sequence number being timed */
+	
+	int     t_rxtcur;               /* current retransmit value (ticks) */
+	u_int   t_maxseg;               /* maximum segment size */
+	int     t_srtt;                 /* smoothed round-trip time */
+	int     t_rttvar;               /* variance in round-trip time */
+	
+	int     t_rxtshift;             /* log(2) of rexmt exp. backoff */
+	u_int   t_rttmin;               /* minimum rtt allowed */
+	u_int32_t t_rttupdated;         /* number of times rtt sampled */
+	u_int32_t max_sndwnd;           /* largest window peer has offered */
+	
+	int     t_softerror;            /* possible error not yet reported */
+	/* out-of-band data */
+	char    t_oobflags;             /* have some */
+	char    t_iobc;                 /* input character */
+	/* RFC 1323 variables */
+	u_char  snd_scale;              /* window scaling for send window */
+	u_char  rcv_scale;              /* window scaling for recv window */
+	u_char  request_r_scale;        /* pending window scaling */
+	u_char  requested_s_scale;
+	u_int32_t ts_recent;            /* timestamp echo data */
+	
+	u_int32_t ts_recent_age;        /* when last updated */
+	tcp_seq last_ack_sent;
+	/* RFC 1644 variables */
+	tcp_cc  cc_send;                /* send connection count */
+	tcp_cc  cc_recv;                /* receive connection count */
+	tcp_seq snd_recover;            /* for use in fast recovery */
+	/* experimental */
+	u_int32_t snd_cwnd_prev;        /* cwnd prior to retransmit */
+	u_int32_t snd_ssthresh_prev;    /* ssthresh prior to retransmit */
+	u_int32_t t_badrxtwin;          /* window for retransmit recovery */
+};
 
-extern void	unixpr(void);
-extern void	aqstatpr(void);
-extern void	rxpollstatpr(void);
+struct	xinpcb_n {
+	u_int32_t		xi_len;		/* length of this structure */
+	u_int32_t		xi_kind;		/* XSO_INPCB */
+	u_int64_t		xi_inpp;
+	u_short 		inp_fport;	/* foreign port */
+	u_short			inp_lport;	/* local port */
+	u_int64_t		inp_ppcb;	/* pointer to per-protocol pcb */
+	inp_gen_t		inp_gencnt;	/* generation count of this instance */
+	int				inp_flags;	/* generic IP/datagram flags */
+	u_int32_t		inp_flow;
+	u_char			inp_vflag;
+	u_char			inp_ip_ttl;	/* time to live */
+	u_char			inp_ip_p;	/* protocol */
+	union {					/* foreign host table entry */
+		struct  in_addr_4in6	inp46_foreign;
+		struct  in6_addr	inp6_foreign;
+	}				inp_dependfaddr;
+	union {					/* local host table entry */
+		struct  in_addr_4in6	inp46_local;
+		struct  in6_addr	inp6_local;
+	}				inp_dependladdr;
+	struct {
+		u_char		inp4_ip_tos;	/* type of service */
+	}				inp_depend4;
+	struct {
+		u_int8_t	inp6_hlim;
+		int			inp6_cksum;
+		u_short		inp6_ifindex;
+		short		inp6_hops;
+	}				inp_depend6;
+	u_int32_t		inp_flowhash;
+};
 
-#if defined(__APPLE__) && !TARGET_OS_EMBEDDED
-extern void	mroutepr(void);
-extern void	mrt_stats(void);
+#define XSO_SOCKET	0x001
+#define XSO_RCVBUF	0x002
+#define XSO_SNDBUF	0x004
+#define XSO_STATS	0x008
+#define XSO_INPCB	0x010
+#define XSO_TCPCB	0x020
+
+struct	xsocket_n {
+	u_int32_t		xso_len;		/* length of this structure */
+	u_int32_t		xso_kind;		/* XSO_SOCKET */
+	u_int64_t		xso_so;	/* makes a convenient handle */
+	short			so_type;
+	u_int32_t		so_options;
+	short			so_linger;
+	short			so_state;
+	u_int64_t		so_pcb;		/* another convenient handle */
+	int				xso_protocol;
+	int				xso_family;
+	short			so_qlen;
+	short			so_incqlen;
+	short			so_qlimit;
+	short			so_timeo;
+	u_short			so_error;
+	pid_t			so_pgid;
+	u_int32_t		so_oobmark;
+	uid_t			so_uid;		/* XXX */
+};
+
+struct xsockbuf_n {
+	u_int32_t		xsb_len;		/* length of this structure */
+	u_int32_t		xsb_kind;		/* XSO_RCVBUF or XSO_SNDBUF */
+	u_int32_t		sb_cc;
+	u_int32_t		sb_hiwat;
+	u_int32_t		sb_mbcnt;
+	u_int32_t		sb_mbmax;
+	int32_t			sb_lowat;
+	short			sb_flags;
+	short			sb_timeo;
+};
+
 #endif
 
-extern void	ifmalist_dump(void);
+struct xgen_n {
+	u_int32_t	xgn_len;			/* length of this structure */
+	u_int32_t	xgn_kind;		/* number of PCBs at this time */
+};
 
-extern int print_time(void);
+#define ALL_XGN_KIND_INP (XSO_SOCKET | XSO_RCVBUF | XSO_SNDBUF | XSO_STATS | XSO_INPCB)
+#define ALL_XGN_KIND_TCP (ALL_XGN_KIND_INP | XSO_TCPCB)
+
+#ifndef SO_TC_MAX
+#define SO_TC_MAX 10
+#endif
+
