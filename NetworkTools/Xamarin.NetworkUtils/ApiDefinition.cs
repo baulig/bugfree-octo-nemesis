@@ -34,12 +34,15 @@ namespace Xamarin.NetworkUtils
 	[BaseType (typeof (NSObject))]
 	public partial interface ManagedNetstat {
 
+		[Internal]
 		[Export ("open:")]
 		IntPtr Open (bool udp);
 
+		[Internal]
 		[Export ("close:")]
 		void Close (IntPtr ptr);
 
+		[Internal]
 		[Export ("move_next:entry:")]
 		bool MoveNext (IntPtr ptr, out NativeNetstatEntry entry);
 

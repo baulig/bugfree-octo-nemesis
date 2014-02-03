@@ -1,5 +1,5 @@
 ﻿//
-// PhoneTestViewController.cs
+// NetstatTableSource.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,34 +24,46 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Drawing;
-using MonoTouch.Foundation;
+using System.Collections.Generic;
 using MonoTouch.UIKit;
+using MonoTouch.Foundation;
 
 namespace Xamarin.NetworkUtils.PhoneTest
 {
-	public partial class PhoneTestViewController : UIViewController
+	public class NetstatTableSource : UITableViewSource
 	{
-		NetstatTableViewController netstatController;
+		IList<NetstatEntry> entries;
+		protected const string cellIdentifier = "TableCell";
 
-		public PhoneTestViewController () : base ("PhoneTestViewController", null)
+		internal const int FontSize = 14;
+
+		public NetstatTableSource ()
 		{
-			netstatController = new NetstatTableViewController ();
+			Refresh ();
 		}
 
-		public override void DidReceiveMemoryWarning ()
+		public void Refresh ()
 		{
-			// Releases the view if it doesn't have a superview.
-			base.DidReceiveMemoryWarning ();
-			
-			// Release any cached data, images, etc that aren't in use.
+			entries = ManagedNetstat.GetTcp ();
 		}
 
-		public override void ViewDidLoad ()
+		public override int RowsInSection (UITableView tableview, int section)
 		{
-			base.ViewDidLoad ();
+			return entries.Count;
+		}
 
-			Add (netstatController.View);
+		public override UITableViewCell GetCell (UITableView tableView, NSIndexPath indexPath)
+		{
+			var cell = tableView.DequeueReusableCell (cellIdentifier);
+			if (cell == null)
+				cell = new UITableViewCell (UITableViewCellStyle.Default, cellIdentifier);
+
+			var idx = (int)indexPath.IndexAtPosition (1);
+			var entry = entries [idx];
+
+			cell.TextLabel.Font = UIFont.SystemFontOfSize (FontSize);
+			cell.TextLabel.Text = string.Format ("{0} - {1} - {2}", entry.LocalEndpoint, entry.RemoteEndpoint, entry.State);
+			return cell;
 		}
 	}
 }

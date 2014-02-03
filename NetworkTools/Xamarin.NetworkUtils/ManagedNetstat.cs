@@ -25,27 +25,31 @@
 // THE SOFTWARE.
 using System;
 using System.Net;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Xamarin.NetworkUtils
 {
 	public partial class ManagedNetstat
 	{
-		public IEnumerable<NetstatEntry> GetTcp ()
+		public static IList<NetstatEntry> GetTcp ()
 		{
-			Console.WriteLine ("TEST!");
+			return new ManagedNetstat ().Get (false).ToList ();
+		}
 
-			var ptr = Open (false);
-			Console.WriteLine ("OPEN: {0:x}", ptr.ToInt64 ());
+		public static IList<NetstatEntry> GetUdp ()
+		{
+			return new ManagedNetstat ().Get (true).ToList ();
+		}
+
+		IEnumerable<NetstatEntry> Get (bool udp)
+		{
+			var ptr = Open (udp);
 
 			NativeNetstatEntry entry;
 			while (MoveNext (ptr, out entry)) {
-				Console.WriteLine ("MOVE NEXT: {0:x} {1:x} - {2:x} {3:x} - {4:x} - {5}", entry.laddr, entry.lport, entry.raddr, entry.rport, entry.flags, entry.state);
-
 				var laddr = new IPEndPoint (entry.laddr, entry.lport);
 				var raddr = new IPEndPoint (entry.raddr, entry.rport);
-
-				Console.WriteLine ("MOVE NEXT #1: {0} {1} {2}", laddr, raddr, entry.state);
 
 				yield return new NetstatEntry {
 					LocalEndpoint = laddr, RemoteEndpoint = raddr, State = entry.state
@@ -53,8 +57,6 @@ namespace Xamarin.NetworkUtils
 			}
 
 			Close (ptr);
-
-			Console.WriteLine ("DONE!");
 		}
 	}
 }

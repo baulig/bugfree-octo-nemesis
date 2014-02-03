@@ -237,8 +237,8 @@ again:
 	if ((inp->inp_vflag & INP_IPV4) == 0)
 		goto again;
 	
-	entry->laddr = ntohl (inp->inp_laddr.s_addr);
-	entry->raddr = ntohl (inp->inp_faddr.s_addr);
+	entry->laddr = inp->inp_laddr.s_addr;
+	entry->raddr = inp->inp_faddr.s_addr;
 	entry->lport = ntohs (inp->inp_lport);
 	entry->rport = ntohs (inp->inp_fport);
 	entry->flags = inp->inp_flags;

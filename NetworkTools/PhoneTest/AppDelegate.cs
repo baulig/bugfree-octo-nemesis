@@ -24,7 +24,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using MonoTouch.Foundation;
@@ -56,17 +55,7 @@ namespace Xamarin.NetworkUtils.PhoneTest
 			window.RootViewController = viewController;
 			window.MakeKeyAndVisible ();
 
-			ThreadPool.QueueUserWorkItem (_ => Test ());
-			
 			return true;
-		}
-
-		void Test ()
-		{
-			var netstat = new ManagedNetstat ();
-			foreach (var entry in netstat.GetTcp ()) {
-				Console.WriteLine (entry);
-			}
 		}
 	}
 }
