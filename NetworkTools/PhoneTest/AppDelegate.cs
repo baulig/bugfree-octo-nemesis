@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
+using MonoTouch.Dialog;
 
 namespace Xamarin.NetworkUtils.PhoneTest
 {
@@ -39,7 +40,21 @@ namespace Xamarin.NetworkUtils.PhoneTest
 	{
 		// class-level declarations
 		UIWindow window;
-		PhoneTestViewController viewController;
+
+		RootElement root;
+		DialogViewController dvc;
+
+		Section netstatSection;
+
+		void Populate ()
+		{
+			netstatSection.Clear ();
+			foreach (var entry in ManagedNetstat.GetTcp ()) {
+				var text = string.Format ("{0} - {1} - {2}", entry.LocalEndpoint, entry.RemoteEndpoint, entry.State);
+				netstatSection.Add (new StringElement (text));
+			}
+		}
+
 		//
 		// This method is invoked when the application has loaded and is ready to run. In this
 		// method you should instantiate the window, load the UI into it and then make the window
@@ -49,10 +64,25 @@ namespace Xamarin.NetworkUtils.PhoneTest
 		//
 		public override bool FinishedLaunching (UIApplication app, NSDictionary options)
 		{
+			netstatSection = new Section ("Open Sockets");
+
+			root = new RootElement ("Netstat") {
+				netstatSection
+			};
+
+			dvc = new DialogViewController (root);
+
+			dvc.RefreshRequested += (sender, e) => {
+				Populate ();
+				dvc.ReloadComplete ();
+			};
+
+			Populate ();
+
 			window = new UIWindow (UIScreen.MainScreen.Bounds);
 			
-			viewController = new PhoneTestViewController ();
-			window.RootViewController = viewController;
+			// viewController = new PhoneTestViewController ();
+			window.RootViewController = dvc;
 			window.MakeKeyAndVisible ();
 
 			return true;

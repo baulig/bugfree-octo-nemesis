@@ -95,14 +95,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="monotouch" />
+    <Reference Include="MonoTouch.Dialog-1" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\Default-568h%402x.png" />
-    <BundleResource Include="Resources\Build\Intermediates\Xamarin.NetworkUtils.PhoneTest.build\MonoTouch-iphoneos\Xamarin.NetworkUtils.PhoneTest.build\Xamarin.NetworkUtils.PhoneTest-all-target-headers.hmap" />
-    <BundleResource Include="Resources\Build\Intermediates\Xamarin.NetworkUtils.PhoneTest.build\MonoTouch-iphoneos\Xamarin.NetworkUtils.PhoneTest.build\Xamarin.NetworkUtils.PhoneTest-generated-files.hmap" />
-    <BundleResource Include="Resources\Build\Intermediates\Xamarin.NetworkUtils.PhoneTest.build\MonoTouch-iphoneos\Xamarin.NetworkUtils.PhoneTest.build\Xamarin.NetworkUtils.PhoneTest-own-target-headers.hmap" />
-    <BundleResource Include="Resources\Build\Intermediates\Xamarin.NetworkUtils.PhoneTest.build\MonoTouch-iphoneos\Xamarin.NetworkUtils.PhoneTest.build\Xamarin.NetworkUtils.PhoneTest-project-headers.hmap" />
-    <BundleResource Include="Resources\Build\Intermediates\Xamarin.NetworkUtils.PhoneTest.build\MonoTouch-iphoneos\Xamarin.NetworkUtils.PhoneTest.build\Xamarin.NetworkUtils.PhoneTest.hmap" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -111,15 +107,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="PhoneTestViewController.cs" />
-    <Compile Include="PhoneTestViewController.designer.cs">
-      <DependentUpon>PhoneTestViewController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="NetstatTableSource.cs" />
-    <Compile Include="NetstatTableViewController.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <InterfaceDefinition Include="PhoneTestViewController.xib" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
