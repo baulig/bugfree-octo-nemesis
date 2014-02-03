@@ -39,40 +39,35 @@ namespace Xamarin.NetworkUtils.PhoneTest
 	{
 		const string BaseUri = "http://localhost:9615/";
 
-		WebRequestWorker worker;
+		CheckPortsRequestWorker worker;
 		Uri uri;
 
 		public WorkerController ()
 			: base (new RootElement ("Network Worker"))
 		{
 			uri = new Uri (BaseUri);
-			worker = new WebRequestWorker (uri);
+			worker = new CheckPortsRequestWorker (uri);
 
 			var controlSection = new Section ();
 			Root.Add (controlSection);
 
+			var urlEntry = new EntryElement ("URL", "<worker url>", uri.AbsoluteUri);
+			controlSection.Add (urlEntry);
+			urlEntry.Changed += (sender, e) => {
+				uri = new Uri (urlEntry.Value);
+				worker.Uri = uri;
+			};
+
 			var startButton = new StyledStringElement ("Start network worker");
 			controlSection.Add (startButton);
 			startButton.Tapped += () => {
-				Console.WriteLine ("START!");
 				worker.StartOne ();
 			};
 
 			var stopButton = new StyledStringElement ("Stop network worker");
 			controlSection.Add (stopButton);
 			stopButton.Tapped += () => {
-				Console.WriteLine ("STOP!");
 				worker.StopOne ();
-			};
-
-			var entrySection = new Section ();
-			Root.Add (entrySection);
-
-			var urlEntry = new EntryElement ("URL", "<worker url>", uri.AbsoluteUri);
-			entrySection.Add (urlEntry);
-			urlEntry.Changed += (sender, e) => {
-				uri = new Uri (urlEntry.Value);
-				worker.Uri = uri;
 			};
 
 			var statusSection = new Section ();
@@ -87,14 +82,39 @@ namespace Xamarin.NetworkUtils.PhoneTest
 			var errorElement = new StringElement ("Errors");
 			statusSection.Add (errorElement);
 
+			var openSocketsElement = new StringElement ("Open Sockets");
+			statusSection.Add (openSocketsElement);
+
+			var knownPortsElement = new StringElement ("Known Ports");
+			statusSection.Add (knownPortsElement);
+
 			var timer = NSTimer.CreateRepeatingTimer (1.0, delegate {
 				countElement.Value = worker.NumWorkers.ToString ();
 				requestElement.Value = worker.RequestCount.ToString ();
 				errorElement.Value = worker.ErrorCount.ToString ();
 
+				var openSockets = GetOpenSockets ();
+				openSocketsElement.Value = openSockets.ToString ();
+
+				knownPortsElement.Value = worker.KnownPorts.ToString ();
+
 				Root.Reload (statusSection, UITableViewRowAnimation.None);
 			});
 			NSRunLoop.Main.AddTimer (timer, NSRunLoopMode.Default);
+		}
+
+		int GetOpenSockets ()
+		{
+			int count = 0;
+			int port = uri.Port;
+			foreach (var entry in ManagedNetstat.GetTcp ()) {
+				if (entry.RemoteEndpoint.Port != port)
+					continue;
+				if (entry.State != TcpState.Established)
+					continue;
+				count++;
+			}
+			return count;
 		}
 	}
 }
