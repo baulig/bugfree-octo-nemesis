@@ -1,5 +1,5 @@
 ﻿//
-// AppDelegate.cs
+// SettingsController.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -32,34 +32,48 @@ using MonoTouch.Dialog;
 
 namespace Xamarin.NetworkUtils.PhoneTest
 {
-	// The UIApplicationDelegate for the application. This class is responsible for launching the
-	// User Interface of the application, as well as listening (and optionally responding) to
-	// application events from iOS.
-	[Register ("AppDelegate")]
-	public partial class AppDelegate : UIApplicationDelegate
+	public class SettingsController : DialogViewController
 	{
-		// class-level declarations
-		UIWindow window;
+		public readonly RootController RootController;
+		public readonly Settings Settings;
+		bool modified;
 
-		//
-		// This method is invoked when the application has loaded and is ready to run. In this
-		// method you should instantiate the window, load the UI into it and then make the window
-		// visible.
-		//
-		// You have 17 seconds to return from this method, or iOS will terminate your application.
-		//
-		public override bool FinishedLaunching (UIApplication app, NSDictionary options)
+		public SettingsController (RootController root)
+			: base (new RootElement ("Settings"), true)
 		{
-			var root = new RootController ();
+			RootController = root;
+			Settings = new Settings ();
 
-			var nav = new UINavigationController (root);
+			var settingsButton = new UIBarButtonItem (UIBarButtonSystemItem.Edit);
+			root.NavigationItem.RightBarButtonItem = settingsButton;
 
-			window = new UIWindow (UIScreen.MainScreen.Bounds);
-			
-			window.RootViewController = nav;
-			window.MakeKeyAndVisible ();
+			settingsButton.Clicked += (sender, e) => {
+				RootController.ActivateController (this);
+			};
 
-			return true;
+			var section = new Section ();
+			Root.Add (section);
+
+			var showListening = new BooleanElement ("Show listening sockets", Settings.ShowListening);
+			showListening.ValueChanged += (sender, e) => {
+				Settings.ShowListening = showListening.Value;
+				modified = true;
+			};
+			section.Add (showListening);
+
+			var showLocal = new BooleanElement ("Show local connections", Settings.ShowLocal);
+			showLocal.ValueChanged += (sender, e) => {
+				Settings.ShowLocal = showLocal.Value;
+				modified = true;
+			};
+			section.Add (showLocal);
+
+			var autoRefresh = new BooleanElement ("Auto refresh", Settings.AutoRefresh);
+			autoRefresh.ValueChanged += (sender, e) => {
+				Settings.AutoRefresh = autoRefresh.Value;
+				modified = true;
+			};
+			section.Add (autoRefresh);
 		}
 	}
 }
