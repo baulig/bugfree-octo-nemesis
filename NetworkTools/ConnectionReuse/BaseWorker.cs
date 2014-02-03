@@ -1,5 +1,5 @@
 ﻿//
-// TabController.cs
+// BaseWorker.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,37 +24,67 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Net;
 using System.Collections.Generic;
-using System.Linq;
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
-using MonoTouch.Dialog;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Xamarin.NetworkUtils.PhoneTest
+namespace ConnectionReuse
 {
-	public class TabController : UITabBarController
+	public abstract class BaseWorker
 	{
-		public TabController (Settings settings)
-		{
-			var socketController = new RootController (settings);
-			socketController.Title = "Sockets";
-			socketController.View.BackgroundColor = UIColor.Green;
+		int requestCount, errorCount;
+		List<CancellationTokenSource> workers = new List<CancellationTokenSource> ();
 
-			var settingsController = new SettingsController ();
-			settingsController.Title = "Settings";
-			settingsController.View.BackgroundColor = UIColor.Red;
-
-			var workerController = new WorkerController ();
-			workerController.Title = "Worker";
-			workerController.View.BackgroundColor = UIColor.Blue;
-
-			var tabs = new UIViewController[] {
-				socketController, settingsController, workerController
-			};
-
-			ViewControllers = tabs;
+		public int NumWorkers {
+			get {
+				lock (workers)
+					return workers.Count;
+			}
 		}
+
+		public int RequestCount {
+			get { return requestCount; }
+		}
+
+		public int ErrorCount {
+			get { return errorCount; }
+		}
+
+		public void StartOne ()
+		{
+			var token = new CancellationTokenSource ();
+			lock (workers)
+				workers.Add (token);
+			Task.Factory.StartNew (() => Worker (token.Token), token.Token);
+		}
+
+
+		public void StopOne ()
+		{
+			lock (workers) {
+				if (workers.Count == 0)
+					return;
+				var index = new Random ().Next (workers.Count);
+				var token = workers [index];
+				workers.RemoveAt (index);
+				token.Cancel ();
+			}
+		}
+
+		void Worker (CancellationToken token)
+		{
+			for (;;) {
+				token.ThrowIfCancellationRequested ();
+				++requestCount;
+				try {
+					DoRequest (token);
+				} catch {
+					++errorCount;
+				}
+			}
+		}
+
+		protected abstract string DoRequest (CancellationToken token);
 	}
 }
 

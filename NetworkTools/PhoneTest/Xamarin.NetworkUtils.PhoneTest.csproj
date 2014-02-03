@@ -111,12 +111,17 @@
     <Compile Include="RootController.cs" />
     <Compile Include="SettingsController.cs" />
     <Compile Include="TabController.cs" />
+    <Compile Include="WorkerController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\Xamarin.NetworkUtils\Xamarin.NetworkUtils.csproj">
       <Project>{02B0327F-A15F-47AD-8C18-12C1D2926EA5}</Project>
       <Name>Xamarin.NetworkUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ConnectionReuse\ConnectionReuse.csproj">
+      <Project>{8E6BAF72-2136-4FF0-ABC6-6B56530DFC3A}</Project>
+      <Name>ConnectionReuse</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

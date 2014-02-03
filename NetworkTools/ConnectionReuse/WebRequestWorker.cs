@@ -1,5 +1,5 @@
 ﻿//
-// TabController.cs
+// WebRequestWorker.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,36 +24,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
 using System.Net;
-using System.Collections.Generic;
-using System.Linq;
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
-using MonoTouch.Dialog;
+using System.Threading;
 
-namespace Xamarin.NetworkUtils.PhoneTest
+namespace ConnectionReuse
 {
-	public class TabController : UITabBarController
+	public class WebRequestWorker : BaseWorker
 	{
-		public TabController (Settings settings)
+		Uri uri;
+
+		public WebRequestWorker (Uri uri)
 		{
-			var socketController = new RootController (settings);
-			socketController.Title = "Sockets";
-			socketController.View.BackgroundColor = UIColor.Green;
+			this.uri = uri;
+		}
 
-			var settingsController = new SettingsController ();
-			settingsController.Title = "Settings";
-			settingsController.View.BackgroundColor = UIColor.Red;
+		public Uri Uri {
+			get { lock (this) return uri; }
+			set {
+				lock (this) {
+					uri = new Uri (value.AbsoluteUri);
+				}
+			}
+		}
 
-			var workerController = new WorkerController ();
-			workerController.Title = "Worker";
-			workerController.View.BackgroundColor = UIColor.Blue;
+		protected override string DoRequest (CancellationToken token)
+		{
+			Uri requestUri;
+			lock (this) {
+				requestUri = new Uri (uri.AbsoluteUri);
+			}
 
-			var tabs = new UIViewController[] {
-				socketController, settingsController, workerController
-			};
+			var request = WebRequest.Create (requestUri) as HttpWebRequest;
+			var ar = request.BeginGetResponse (null, null);
+			ar.AsyncWaitHandle.WaitOne ();
 
-			ViewControllers = tabs;
+			using (var response = (HttpWebResponse)request.EndGetResponse (ar)) {
+				if (response.StatusCode != HttpStatusCode.OK)
+					throw new InvalidOperationException ();
+				using (var stream = new StreamReader (response.GetResponseStream ()))
+					return stream.ReadToEnd ();
+			}
 		}
 	}
 }
