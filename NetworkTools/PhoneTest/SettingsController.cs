@@ -81,10 +81,33 @@ namespace Xamarin.NetworkUtils.PhoneTest
 			};
 			filterSection.Add (portFilter);
 
+			var spSection = new Section ();
+			Root.Add (spSection);
+
+			var maxSps = new EntryElement ("Max ServicePoints", "<number>", Settings.MaxServicePoints.ToString ());
+			maxSps.Changed += (sender, e) => {
+				int value;
+				if (!int.TryParse (maxSps.Value, out value))
+					maxSps.Value = Settings.MaxServicePoints.ToString ();
+				else
+					Settings.MaxServicePoints = value;
+			};
+			spSection.Add (maxSps);
+
+			var spIdle = new EntryElement ("SP idle time", "<idle-time>", Settings.ServicePointIdleTime.ToString ());
+			spIdle.Changed += (sender, e) => {
+				int value;
+				if (!int.TryParse (spIdle.Value, out value))
+					spIdle.Value = Settings.ServicePointIdleTime.ToString ();
+				else
+					Settings.ServicePointIdleTime = value;
+			};
+			spSection.Add (spIdle);
+
 			Settings.Modified += (sender, e) => InvokeOnMainThread (() => {
-				var newValue = Settings.PortFilter.ToString ();
-				if (!string.Equals (portFilter.Value, newValue)) {
-					portFilter.Value = newValue;
+				var newPfValue = Settings.PortFilter.ToString ();
+				if (!string.Equals (portFilter.Value, newPfValue)) {
+					portFilter.Value = newPfValue;
 					Root.Reload (portFilter, UITableViewRowAnimation.Automatic);
 				}
 

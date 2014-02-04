@@ -100,6 +100,10 @@ namespace Xamarin.NetworkUtils.PhoneTest
 				Root.Reload (statusSection, UITableViewRowAnimation.None);
 			});
 			NSRunLoop.Main.AddTimer (timer, NSRunLoopMode.Default);
+
+			Settings.Instance.Modified += (sender, e) => {
+				ServicePointManager.MaxServicePoints = 0;
+			};
 		}
 
 		void UriChanged (string newUri)

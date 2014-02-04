@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Net;
 
 namespace Xamarin.NetworkUtils.PhoneTest
 {
@@ -86,6 +87,26 @@ namespace Xamarin.NetworkUtils.PhoneTest
 				if (value == usePortFilter)
 					return;
 				usePortFilter = value;
+				OnModified ();
+			}
+		}
+
+		public int MaxServicePoints {
+			get { return ServicePointManager.MaxServicePoints; }
+			set {
+ 				if (value == ServicePointManager.MaxServicePoints)
+					return;
+				ServicePointManager.MaxServicePoints = value;
+				OnModified ();
+			}
+		}
+
+		public int ServicePointIdleTime {
+			get { return ServicePointManager.MaxServicePointIdleTime; }
+			set {
+				if (value == ServicePointManager.MaxServicePointIdleTime)
+					return;
+				ServicePointManager.MaxServicePointIdleTime = value;
 				OnModified ();
 			}
 		}

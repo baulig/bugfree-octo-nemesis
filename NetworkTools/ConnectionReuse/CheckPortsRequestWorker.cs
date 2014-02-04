@@ -31,7 +31,7 @@ namespace ConnectionReuse
 {
 	public class CheckPortsRequestWorker : WebRequestWorker
 	{
-		const int recycleTime = 2500;
+		const int recycleTime = 180000;
 		Dictionary<int,DateTime> knownPorts = new Dictionary<int,DateTime> ();
 
 		public CheckPortsRequestWorker (Uri uri)
