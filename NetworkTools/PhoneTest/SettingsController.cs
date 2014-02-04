@@ -35,12 +35,11 @@ namespace Xamarin.NetworkUtils.PhoneTest
 	public class SettingsController : DialogViewController
 	{
 		public readonly Settings Settings;
-		bool modified;
 
 		public SettingsController ()
 			: base (new RootElement ("Settings"), true)
 		{
-			Settings = new Settings ();
+			Settings = Settings.Instance;
 
 			var section = new Section ();
 			Root.Add (section);
@@ -48,23 +47,52 @@ namespace Xamarin.NetworkUtils.PhoneTest
 			var showListening = new BooleanElement ("Show listening sockets", Settings.ShowListening);
 			showListening.ValueChanged += (sender, e) => {
 				Settings.ShowListening = showListening.Value;
-				modified = true;
 			};
 			section.Add (showListening);
 
 			var showLocal = new BooleanElement ("Show local connections", Settings.ShowLocal);
 			showLocal.ValueChanged += (sender, e) => {
 				Settings.ShowLocal = showLocal.Value;
-				modified = true;
 			};
 			section.Add (showLocal);
 
 			var autoRefresh = new BooleanElement ("Auto refresh", Settings.AutoRefresh);
 			autoRefresh.ValueChanged += (sender, e) => {
 				Settings.AutoRefresh = autoRefresh.Value;
-				modified = true;
 			};
 			section.Add (autoRefresh);
+
+			var filterSection = new Section ();
+			Root.Add (filterSection);
+
+			var usePortFilter = new BooleanElement ("Use Port filter", Settings.UsePortFilter);
+			usePortFilter.ValueChanged += (sender, e) => {
+				Settings.UsePortFilter = usePortFilter.Value;
+			};
+			filterSection.Add (usePortFilter);
+
+			var portFilter = new EntryElement ("Port filter", "<port>", Settings.PortFilter.ToString ());
+			portFilter.Changed += (sender, e) => {
+				int port;
+				if (!int.TryParse (portFilter.Value, out port))
+					portFilter.Value = Settings.PortFilter.ToString ();
+				else
+					Settings.PortFilter = port;
+			};
+			filterSection.Add (portFilter);
+
+			Settings.Modified += (sender, e) => InvokeOnMainThread (() => {
+				var newValue = Settings.PortFilter.ToString ();
+				if (!string.Equals (portFilter.Value, newValue)) {
+					portFilter.Value = newValue;
+					Root.Reload (portFilter, UITableViewRowAnimation.Automatic);
+				}
+
+				if (usePortFilter.Value != Settings.UsePortFilter) {
+					usePortFilter.Value = Settings.UsePortFilter;
+					Root.Reload (usePortFilter, UITableViewRowAnimation.Automatic);
+				}
+			});
 		}
 	}
 }

@@ -25,8 +25,8 @@
 // THE SOFTWARE.
 using System;
 using System.Net;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 using MonoTouch.Dialog;
@@ -36,30 +36,68 @@ namespace Xamarin.NetworkUtils.PhoneTest
 	public class RootController : DialogViewController
 	{
 		public readonly Settings Settings;
+		Dictionary<NetstatEntry,DateTime> displayedEntries;
 		Section section;
+		NSTimer timer;
 
-		public RootController (Settings settings)
+		public RootController ()
 			: base (new RootElement ("Netstat"))
 		{
-			Settings = settings;
+			Settings = Settings.Instance;
 
 			section = new Section ();
 			Root.Add (section);
+
+			displayedEntries = new Dictionary<NetstatEntry,DateTime> ();
 
 			RefreshRequested += (sender, e) => {
 				Populate ();
 				ReloadComplete ();
 			};
+
+			Settings.Modified += (sender, e) => InvokeOnMainThread (() => {
+				displayedEntries.Clear ();
+				Populate ();
+			});
+
+			timer = NSTimer.CreateRepeatingTimer (1.0, () => {
+				if (View.Hidden || !Settings.AutoRefresh)
+					return;
+				Populate ();
+			});
+			NSRunLoop.Main.AddTimer (timer, NSRunLoopMode.Default);
+		}
+
+		struct DisplayedEntry {
+			public readonly NetstatEntry Entry;
+			public readonly DateTime Created;
+			public bool Flag;
 		}
 
 		void Populate ()
 		{
 			section.Clear ();
-			foreach (var entry in ManagedNetstat.GetTcp ()) {
+			var entries = ManagedNetstat.GetTcp ();
+			foreach (var entry in entries) {
 				if (!Filter (entry))
 					continue;
 				var text = string.Format ("{0} - {1} - {2}", entry.LocalEndpoint, entry.RemoteEndpoint, entry.State);
-				section.Add (new StringElement (text));
+				var element = new StyledStringElement (text);
+				element.Font = UIFont.SystemFontOfSize (12.0f);
+				if (!displayedEntries.ContainsKey (entry)) {
+					displayedEntries.Add (entry, DateTime.UtcNow);
+					element.BackgroundColor = UIColor.Red;
+				} else {
+					var age = DateTime.UtcNow - displayedEntries [entry];
+					if (age < TimeSpan.FromSeconds (3))
+						element.BackgroundColor = UIColor.Yellow;
+				}
+				section.Add (element);
+			}
+			var oldEntries = displayedEntries.Keys.ToList ();
+			foreach (var old in oldEntries) {
+				if (!entries.Contains (old))
+					displayedEntries.Remove (old);
 			}
 		}
 
@@ -87,6 +125,8 @@ namespace Xamarin.NetworkUtils.PhoneTest
 				if (IsLocalHost (entry.LocalEndpoint.Address) && IsLocalHost (entry.RemoteEndpoint.Address))
 					return false;
 			}
+			if (Settings.UsePortFilter && entry.RemoteEndpoint.Port != Settings.PortFilter)
+				return false;
 			return true;
 		}
 

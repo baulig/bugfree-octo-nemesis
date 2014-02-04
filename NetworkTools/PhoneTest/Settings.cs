@@ -29,17 +29,74 @@ namespace Xamarin.NetworkUtils.PhoneTest
 {
 	public class Settings
 	{
+		bool showListening;
+		bool showLocal = true;
+		bool autoRefresh = true;
+		bool usePortFilter;
+		int portFilter;
+
+		Settings ()
+		{ }
+
+		public static readonly Settings Instance = new Settings ();
+
 		public bool ShowListening {
-			get; set;
+			get { return showListening; }
+			set {
+				if (value == showListening)
+					return;
+				showListening = value;
+				OnModified ();
+			}
 		}
 
 		public bool ShowLocal {
-			get; set;
+			get { return showLocal; }
+			set {
+				if (value == showLocal)
+					return;
+				showLocal = value;
+				OnModified ();
+			}
 		}
 
 		public bool AutoRefresh {
-			get; set;
+			get { return autoRefresh; }
+			set {
+				if (value == autoRefresh)
+					return;
+				autoRefresh = value;
+				OnModified ();
+			}
 		}
+
+		public int PortFilter {
+			get { return portFilter; }
+			set {
+				if (value == portFilter)
+					return;
+				portFilter = value;
+				OnModified ();
+			}
+		}
+
+		public bool UsePortFilter {
+			get { return usePortFilter; }
+			set {
+				if (value == usePortFilter)
+					return;
+				usePortFilter = value;
+				OnModified ();
+			}
+		}
+
+		protected virtual void OnModified ()
+		{
+			if (Modified != null)
+				Modified (this, null);
+		}
+
+		public event EventHandler Modified;
 	}
 }
 

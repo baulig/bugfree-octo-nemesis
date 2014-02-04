@@ -53,14 +53,13 @@ namespace Xamarin.NetworkUtils.PhoneTest
 
 			var urlEntry = new EntryElement ("URL", "<worker url>", uri.AbsoluteUri);
 			controlSection.Add (urlEntry);
-			urlEntry.Changed += (sender, e) => {
-				uri = new Uri (urlEntry.Value);
-				worker.Uri = uri;
-			};
+			urlEntry.Changed += (sender, e) => UriChanged (urlEntry.Value);
+			UriChanged (urlEntry.Value);
 
 			var startButton = new StyledStringElement ("Start network worker");
 			controlSection.Add (startButton);
 			startButton.Tapped += () => {
+				Settings.Instance.UsePortFilter = true;
 				worker.StartOne ();
 			};
 
@@ -101,6 +100,13 @@ namespace Xamarin.NetworkUtils.PhoneTest
 				Root.Reload (statusSection, UITableViewRowAnimation.None);
 			});
 			NSRunLoop.Main.AddTimer (timer, NSRunLoopMode.Default);
+		}
+
+		void UriChanged (string newUri)
+		{
+			uri = new Uri (newUri);
+			worker.Uri = uri;
+			Settings.Instance.PortFilter = uri.Port;
 		}
 
 		int GetOpenSockets ()

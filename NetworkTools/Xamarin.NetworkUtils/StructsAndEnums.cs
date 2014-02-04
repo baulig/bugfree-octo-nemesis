@@ -48,6 +48,23 @@ namespace Xamarin.NetworkUtils
 		public IPEndPoint RemoteEndpoint;
 		public TcpState State;
 
+		public override bool Equals (object obj)
+		{
+			var other = (NetstatEntry)obj;
+			if (!other.LocalEndpoint.Equals (LocalEndpoint))
+				return false;
+			if (!other.RemoteEndpoint.Equals (RemoteEndpoint))
+				return false;
+			if (other.State != State)
+				return false;
+			return true;
+		}
+
+		public override int GetHashCode ()
+		{
+			return LocalEndpoint.GetHashCode ();
+		}
+
 		public override string ToString ()
 		{
 			return String.Format ("[NetstatEntry: {0} - {1} - {2}", State, LocalEndpoint, RemoteEndpoint);

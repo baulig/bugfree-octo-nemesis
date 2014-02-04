@@ -35,9 +35,9 @@ namespace Xamarin.NetworkUtils.PhoneTest
 {
 	public class TabController : UITabBarController
 	{
-		public TabController (Settings settings)
+		public TabController ()
 		{
-			var socketController = new RootController (settings);
+			var socketController = new RootController ();
 			socketController.Title = "Sockets";
 			socketController.View.BackgroundColor = UIColor.Green;
 

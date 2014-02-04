@@ -40,7 +40,6 @@ namespace Xamarin.NetworkUtils.PhoneTest
 	{
 		// class-level declarations
 		UIWindow window;
-		Settings settings;
 
 		//
 		// This method is invoked when the application has loaded and is ready to run. In this
@@ -53,9 +52,7 @@ namespace Xamarin.NetworkUtils.PhoneTest
 		{
 			window = new UIWindow (UIScreen.MainScreen.Bounds);
 
-			settings = new Settings ();
-			
-			window.RootViewController = new TabController (settings);
+			window.RootViewController = new TabController ();
 			window.MakeKeyAndVisible ();
 
 			return true;
