@@ -30,9 +30,7 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using SD = System.Diagnostics;
-#if NUNIT
 using NUnit.Framework;
-#endif
 
 namespace Xamarin.WebTests
 {

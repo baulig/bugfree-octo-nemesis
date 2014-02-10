@@ -37,21 +37,17 @@ namespace Xamarin.NetworkUtils.PhoneTest
 
 	public class WorkerController : DialogViewController
 	{
-		const string BaseUri = "http://localhost:9615/";
-
 		CheckPortsRequestWorker worker;
-		Uri uri;
 
 		public WorkerController ()
 			: base (new RootElement ("Network Worker"))
 		{
-			uri = new Uri (BaseUri);
-			worker = new CheckPortsRequestWorker (uri);
+			worker = new CheckPortsRequestWorker (Settings.Instance.Uri);
 
 			var controlSection = new Section ();
 			Root.Add (controlSection);
 
-			var urlEntry = new EntryElement ("URL", "<worker url>", uri.AbsoluteUri);
+			var urlEntry = new EntryElement ("URL", "<worker url>", Settings.Instance.Uri.AbsoluteUri);
 			controlSection.Add (urlEntry);
 			urlEntry.Changed += (sender, e) => UriChanged (urlEntry.Value);
 			UriChanged (urlEntry.Value);
@@ -108,15 +104,15 @@ namespace Xamarin.NetworkUtils.PhoneTest
 
 		void UriChanged (string newUri)
 		{
-			uri = new Uri (newUri);
-			worker.Uri = uri;
+			var uri = new Uri (newUri);
+			Settings.Instance.Uri = worker.Uri = uri;
 			Settings.Instance.PortFilter = uri.Port;
 		}
 
 		int GetOpenSockets ()
 		{
 			int count = 0;
-			int port = uri.Port;
+			int port = Settings.Instance.PortFilter;
 			foreach (var entry in ManagedNetstat.GetTcp ()) {
 				if (entry.RemoteEndpoint.Port != port)
 					continue;

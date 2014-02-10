@@ -84,15 +84,15 @@ namespace Xamarin.NetworkUtils.PhoneTest
 			var spSection = new Section ();
 			Root.Add (spSection);
 
-			var maxSps = new EntryElement ("Max ServicePoints", "<number>", Settings.MaxServicePoints.ToString ());
-			maxSps.Changed += (sender, e) => {
+			var connectionLimit = new EntryElement ("Connection limit", "<number>", Settings.ConnectionLimit.ToString ());
+			connectionLimit.Changed += (sender, e) => {
 				int value;
-				if (!int.TryParse (maxSps.Value, out value))
-					maxSps.Value = Settings.MaxServicePoints.ToString ();
+				if (!int.TryParse (connectionLimit.Value, out value))
+					connectionLimit.Value = Settings.ConnectionLimit.ToString ();
 				else
-					Settings.MaxServicePoints = value;
+					Settings.ConnectionLimit = value;
 			};
-			spSection.Add (maxSps);
+			spSection.Add (connectionLimit);
 
 			var spIdle = new EntryElement ("SP idle time", "<idle-time>", Settings.ServicePointIdleTime.ToString ());
 			spIdle.Changed += (sender, e) => {

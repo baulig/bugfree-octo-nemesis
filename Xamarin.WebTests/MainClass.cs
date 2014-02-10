@@ -25,6 +25,8 @@
 // THE SOFTWARE.
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Net;
 
 namespace Xamarin.WebTests
@@ -35,7 +37,8 @@ namespace Xamarin.WebTests
 	{
 		public static void Run ()
 		{
-			RunTheTests ();
+			ConcurrentRequests ();
+			// RunTheTests ();
 		}
 
 		static void RunTheTests ()
@@ -62,6 +65,29 @@ namespace Xamarin.WebTests
 
 			var end = DateTime.Now;
 			Console.WriteLine ("Total time: {0}", end - start);
+		}
+
+		static void ConcurrentRequests ()
+		{
+			ServicePointManager.DefaultConnectionLimit = 5;
+			ConcurrentRequests (10);
+			Thread.Sleep (25000);
+		}
+
+		static void ConcurrentRequests (int count)
+		{
+			for (int i = 0; i < count; i++) {
+				var url = string.Format ("http://www.google.com/#q={0}/", i);
+				var request = HttpWebRequest.Create (url) as HttpWebRequest;
+				var ares = request.BeginGetResponse (ar => {
+					Thread.Sleep (5000);
+					var response = request.EndGetResponse (ar) as HttpWebResponse;
+					Console.WriteLine ("ARES: {0} {1}", i, response);
+					Console.WriteLine (response.StatusCode);
+					response.Close ();
+				}, null);
+				Console.WriteLine ("TEST: {0} {1}", i, ares.IsCompleted);
+			}
 		}
 
 		static void WildcardRun (string rootDomain)

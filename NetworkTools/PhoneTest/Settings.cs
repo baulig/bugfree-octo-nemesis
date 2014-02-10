@@ -35,9 +35,8 @@ namespace Xamarin.NetworkUtils.PhoneTest
 		bool autoRefresh = true;
 		bool usePortFilter;
 		int portFilter;
-
-		Settings ()
-		{ }
+		Uri uri = new Uri ("http://localhost:9615/");
+		ServicePoint servicePoint;
 
 		public static readonly Settings Instance = new Settings ();
 
@@ -91,22 +90,50 @@ namespace Xamarin.NetworkUtils.PhoneTest
 			}
 		}
 
-		public int MaxServicePoints {
-			get { return ServicePointManager.MaxServicePoints; }
+		public int ConnectionLimit {
+			get {
+				if (servicePoint != null)
+					return servicePoint.ConnectionLimit;
+				else
+					return ServicePointManager.DefaultConnectionLimit;
+			}
 			set {
- 				if (value == ServicePointManager.MaxServicePoints)
+				GetServicePoint ();
+				if (value == servicePoint.ConnectionLimit)
 					return;
-				ServicePointManager.MaxServicePoints = value;
+				servicePoint.ConnectionLimit = value;
 				OnModified ();
 			}
 		}
 
 		public int ServicePointIdleTime {
-			get { return ServicePointManager.MaxServicePointIdleTime; }
+			get {
+				if (servicePoint != null)
+					return servicePoint.MaxIdleTime;
+				else
+					return ServicePointManager.MaxServicePointIdleTime;
+			}
 			set {
-				if (value == ServicePointManager.MaxServicePointIdleTime)
+				GetServicePoint ();
+				if (value == servicePoint.MaxIdleTime)
 					return;
-				ServicePointManager.MaxServicePointIdleTime = value;
+				servicePoint.MaxIdleTime = value;
+				OnModified ();
+			}
+		}
+
+		void GetServicePoint ()
+		{
+			if (servicePoint != null)
+				return;
+			servicePoint = ServicePointManager.FindServicePoint (uri);
+		}
+
+		public Uri Uri {
+			get { return uri; }
+			set {
+				uri = value;
+				servicePoint = null;
 				OnModified ();
 			}
 		}
