@@ -34,6 +34,7 @@ using NUnit.Framework.Internal;
 
 namespace Xamarin.WebTests
 {
+	using Framework;
 	using Client;
 
 	public static class MainClass
@@ -49,7 +50,9 @@ namespace Xamarin.WebTests
 		static void RunTheTests ()
 		{
 			var test = new Simple ();
-			test.TestNoWriteStreamBuffering (RequestFlags.None);
+			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Default));
+			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.ContentLength));
+			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Chunked));
 		}
 
 		static void GetPuppySsl ()

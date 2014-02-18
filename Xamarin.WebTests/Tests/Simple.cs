@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
 using System.Net;
 using System.Collections;
 using NUnit.Framework;
@@ -54,6 +55,32 @@ namespace Xamarin.WebTests
 		{
 			GetPuppy.Get (test.Flags, test.TransferMode);
 			Assert.Pass ();
+		}
+
+		[Category("Work")]
+		[TestCaseSource("SimpleTests")]
+		public void TestPost (SimpleTest test)
+		{
+			var text = "Hello World";
+			var request = PostPuppy.CreateRequest (test.Flags, test.TransferMode, text);
+
+			var response = (HttpWebResponse)request.GetResponse ();
+			try {
+				Assert.AreEqual (HttpStatusCode.OK, response.StatusCode, "#1");
+				var puppy = PostPuppy.Read (response);
+
+				if (test.TransferMode != TransferMode.Chunked) {
+					Assert.AreEqual (text.Length, puppy.ContentLength, "#2a");
+					Assert.AreEqual (text, puppy.SimpleBody, "#3a");
+					Assert.IsNull (puppy.FullBody, "#4b");
+				} else {
+					Assert.AreEqual (-1, puppy.ContentLength, "#2b");
+					Assert.IsNull (puppy.SimpleBody, "#3b");
+					Assert.AreEqual (text, puppy.FullBody, "#4");
+				}
+			} finally {
+				response.Close ();
+			}
 		}
 
 		[Category("Simple")]

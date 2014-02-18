@@ -63,6 +63,8 @@
     <Compile Include="Tests\Redirect.cs" />
     <Compile Include="Tests\ConnectionReuse.cs" />
     <Compile Include="Tests\Simple.cs" />
+    <Compile Include="Client\PostPuppy.cs" />
+    <Compile Include="Client\AbstractPuppy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -32,77 +32,16 @@ namespace Xamarin.WebTests.Client
 {
 	using Framework;
 
-	public class GetPuppy
+	public sealed class GetPuppy : AbstractPuppy
 	{
-		public Uri Uri {
-			get;
-			private set;
-		}
-
-		public string Method {
-			get;
-			private set;
-		}
-
-		public string Path {
-			get;
-			private set;
-		}
-
-		public string RemoteAddress {
-			get;
-			private set;
-		}
-
-		public int RemotePort {
-			get;
-			private set;
-		}
-
-		public TransferMode TransferMode {
-			get;
-			private set;
-		}
-
-		private GetPuppy ()
+		GetPuppy ()
 		{
 		}
 
 		public static GetPuppy Read (HttpWebResponse response)
 		{
-			if (response.StatusCode != HttpStatusCode.OK)
-				throw new InvalidOperationException ();
-
 			var puppy = new GetPuppy ();
-
-			puppy.Uri = response.ResponseUri;
-
-			using (var reader = new StreamReader (response.GetResponseStream ())) {
-				string line;
-				while ((line = reader.ReadLine ()) != null) {
-					var match = Regex.Match (line, @"^([\w_]+):\s*(.*)$");
-					if (match == null)
-						break;
-
-					var key = match.Groups [1].Value;
-					var value = match.Groups [2].Value;
-					switch (key) {
-					case "METHOD":
-						puppy.Method = value;
-						break;
-					case "PATH":
-						puppy.Path = value;
-						break;
-					case "REMOTE":
-						puppy.RemoteAddress = value;
-						break;
-					case "PORT":
-						puppy.RemotePort = int.Parse (value);
-						break;
-					}
-				}
-			}
-
+			puppy.ReadResponse (response);
 			return puppy;
 		}
 
@@ -116,18 +55,6 @@ namespace Xamarin.WebTests.Client
 		public static HttpWebRequest CreateRequest (RequestFlags flags, TransferMode mode)
 		{
 			return WebTestFixture.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
-		}
-
-		static string GetModeString (TransferMode mode)
-		{
-			switch (mode) {
-			case TransferMode.Chunked:
-				return "chunked";
-			case TransferMode.ContentLength:
-				return "length";
-			default:
-				return "default";
-			}
 		}
 
 		public override string ToString ()
