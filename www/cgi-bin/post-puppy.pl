@@ -10,6 +10,7 @@ my $auth = auth_type();
 my $remote = remote_addr();
 my $port = $ENV{"REMOTE_PORT"};
 my $length = $ENV{"CONTENT_LENGTH"};
+my $body = $q->param("POSTDATA");
 
 my $output = "";
 open OUTPUT, '>', \$output;
@@ -20,6 +21,12 @@ print OUTPUT "AUTH: $auth\n" if defined $auth;
 print OUTPUT "REMOTE: $remote\n";
 print OUTPUT "PORT: $port\n";
 print OUTPUT "LENGTH: $length\n";
+print OUTPUT "BODY: $body\n";
+print OUTPUT "\n";
+
+while (<STDIN>) {
+    print OUTPUT $_;
+}
 
 close OUTPUT;
 
