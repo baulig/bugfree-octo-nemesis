@@ -30,6 +30,8 @@ using System.Text.RegularExpressions;
 
 namespace Xamarin.WebTests.Client
 {
+	using Framework;
+
 	public class GetPuppy
 	{
 		public Uri Uri {
@@ -106,9 +108,14 @@ namespace Xamarin.WebTests.Client
 
 		public static GetPuppy Get (RequestFlags flags, TransferMode mode)
 		{
-			var request = WebRequests.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
+			var request = CreateRequest (flags, mode);
 			var response = (HttpWebResponse)request.GetResponse ();
 			return Read (response);
+		}
+
+		public static HttpWebRequest CreateRequest (RequestFlags flags, TransferMode mode)
+		{
+			return WebTestFixture.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
 		}
 
 		static string GetModeString (TransferMode mode)

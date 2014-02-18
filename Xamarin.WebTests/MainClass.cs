@@ -27,7 +27,10 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using System.Net;
+using NUnitLite.Runner;
+using NUnit.Framework.Internal;
 
 namespace Xamarin.WebTests
 {
@@ -37,14 +40,16 @@ namespace Xamarin.WebTests
 	{
 		public static void Run ()
 		{
-			ConcurrentRequests ();
-			// RunTheTests ();
+			var setCtx = typeof(TestExecutionContext).GetMethod ("SetCurrentContext", BindingFlags.Static | BindingFlags.NonPublic);
+			setCtx.Invoke (null, new object[] { new TestExecutionContext () });
+
+			RunTheTests ();
 		}
 
 		static void RunTheTests ()
 		{
-			var test = new WebRequests ();
-			test.TestReuse (new ReuseTest (RequestFlags.None, TransferMode.ContentLength, 25, 5));
+			var test = new Simple ();
+			test.TestNoWriteStreamBuffering (RequestFlags.None);
 		}
 
 		static void GetPuppySsl ()

@@ -1,10 +1,10 @@
-//
-// RedirectTest.cs
+﻿//
+// Simple.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,26 +25,57 @@
 // THE SOFTWARE.
 using System;
 using System.Net;
+using System.Collections;
 using NUnit.Framework;
 
 namespace Xamarin.WebTests
 {
+	using Framework;
 	using Client;
 
-	public class RedirectTest
+	[TestFixture]
+	public class Simple : WebTestFixture
 	{
-		public RequestFlags Flags {
-			get;
-			set;
-		}
-
-		public HttpStatusCode Code {
-			get; set;
-		}
-
-		public override string ToString ()
+		[Category("Simple")]
+		[TestCaseSource("AllFlags")]
+		public void TestSimpleGet (RequestFlags flags)
 		{
-			return string.Format ("[RedirectTest: Flags={0}, Code={1}]", Flags, Code);
+			var response = GetResponse ("www/index.html", flags);
+			try {
+				Assert.AreEqual (HttpStatusCode.OK, response.StatusCode);
+			} finally {
+				response.Close ();
+			}
+		}
+
+		[Category("Work")]
+		[TestCaseSource("SimpleTests")]
+		public void TestGet (SimpleTest test)
+		{
+			GetPuppy.Get (test.Flags, test.TransferMode);
+			Assert.Pass ();
+		}
+
+		[Category("Simple")]
+		[TestCaseSource("AllFlags")]
+		public void TestNoWriteStreamBuffering (RequestFlags flags)
+		{
+			var req = GetPuppy.CreateRequest (flags, TransferMode.Default);
+
+			req.Method = "POST";
+			req.KeepAlive = false;
+			req.AllowWriteStreamBuffering = false;
+
+			var ar = req.BeginGetRequestStream (null, null);
+			var rs = req.EndGetRequestStream (ar);
+			rs.Close ();
+		}
+
+		public static IEnumerable SimpleTests ()
+		{
+			foreach (var flags in NoProxyFlags)
+				foreach (var mode in AllTransferModes)
+					yield return new SimpleTest (flags, mode);
 		}
 	}
 }

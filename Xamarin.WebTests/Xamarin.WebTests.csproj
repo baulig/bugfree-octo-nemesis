@@ -40,6 +40,7 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <PlatformTarget>x86</PlatformTarget>
+    <Commandlineparameters>-include:Work</Commandlineparameters>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -51,15 +52,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="WebRequests.cs" />
-    <Compile Include="RedirectTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainClass.cs" />
-    <Compile Include="ReuseTest.cs" />
     <Compile Include="Client\GetPuppy.cs" />
     <Compile Include="Client\RequestFlags.cs" />
     <Compile Include="Client\TransferMode.cs" />
+    <Compile Include="Framework\WebTestFixture.cs" />
+    <Compile Include="Framework\Settings.cs" />
+    <Compile Include="Framework\SimpleTest.cs" />
+    <Compile Include="Tests\Redirect.cs" />
+    <Compile Include="Tests\ConnectionReuse.cs" />
+    <Compile Include="Tests\Simple.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -71,5 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Client\" />
+    <Folder Include="Tests\" />
+    <Folder Include="Framework\" />
   </ItemGroup>
 </Project>

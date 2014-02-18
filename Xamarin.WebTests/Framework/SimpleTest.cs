@@ -1,5 +1,5 @@
 ﻿//
-// ReuseTest.cs
+// SimpleTest.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -25,11 +25,11 @@
 // THE SOFTWARE.
 using System;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.Framework
 {
 	using Client;
 
-	public class ReuseTest
+	public class SimpleTest
 	{
 		public RequestFlags Flags {
 			get;
@@ -41,27 +41,15 @@ namespace Xamarin.WebTests
 			private set;
 		}
 
-		public int Count {
-			get;
-			private set;
-		}
-
-		public int Limit {
-			get;
-			private set;
-		}
-
-		public ReuseTest (RequestFlags flags, TransferMode mode, int count, int limit = 10)
+		public SimpleTest (RequestFlags flags, TransferMode mode)
 		{
 			Flags = flags;
 			TransferMode = mode;
-			Count = count;
-			Limit = limit;
 		}
 
 		public override string ToString ()
 		{
-			return string.Format ("[ReuseTest: Flags={0}, TransferMode={1}, Count={2}]", Flags, TransferMode, Count);
+			return string.Format ("[SimpleTest: Flags={0}, TransferMode={1}]", Flags, TransferMode);
 		}
 	}
 }

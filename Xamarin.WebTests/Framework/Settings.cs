@@ -26,7 +26,7 @@
 using System;
 using System.Configuration;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.Framework
 {
 	public static class Settings
 	{
