@@ -36,6 +36,7 @@ namespace Xamarin.WebTests
 {
 	using Framework;
 	using Client;
+	using Server;
 
 	public static class MainClass
 	{
@@ -44,15 +45,27 @@ namespace Xamarin.WebTests
 			var setCtx = typeof(TestExecutionContext).GetMethod ("SetCurrentContext", BindingFlags.Static | BindingFlags.NonPublic);
 			setCtx.Invoke (null, new object[] { new TestExecutionContext () });
 
-			RunTheTests ();
+			TestServer ();
 		}
 
 		static void RunTheTests ()
 		{
 			var test = new Simple ();
+			test.Post_EmptyRequestStream ();
 			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Default));
 			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.ContentLength));
 			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Chunked));
+		}
+
+		static void TestServer ()
+		{
+			var listener = new Listener (9999);
+			listener.RegisterSite ("/test/", new HelloWorldHandler ());
+			listener.Start ();
+
+			var request = HttpWebRequest.Create ("http://127.0.0.1:9999/test/");
+			var response = (HttpWebResponse)request.GetResponse ();
+			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
 		}
 
 		static void GetPuppySsl ()

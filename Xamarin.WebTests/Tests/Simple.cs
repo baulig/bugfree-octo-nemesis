@@ -98,6 +98,20 @@ namespace Xamarin.WebTests
 			rs.Close ();
 		}
 
+		[Category("Work")]
+		[Test]
+		// Bug6737
+		// This test is supposed to fail prior to .NET 4.0
+		public void Post_EmptyRequestStream ()
+		{
+			var wr = HttpWebRequest.Create ("http://google.com");
+			wr.Method = "POST";
+			wr.GetRequestStream ();
+
+			var gr = wr.BeginGetResponse (delegate { }, null);
+			Assert.AreEqual (true, gr.AsyncWaitHandle.WaitOne (5000), "#1");
+		}
+
 		public static IEnumerable SimpleTests ()
 		{
 			foreach (var flags in NoProxyFlags)

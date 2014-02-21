@@ -65,6 +65,11 @@
     <Compile Include="Tests\Simple.cs" />
     <Compile Include="Client\PostPuppy.cs" />
     <Compile Include="Client\AbstractPuppy.cs" />
+    <Compile Include="Server\Listener.cs" />
+    <Compile Include="Server\Connection.cs" />
+    <Compile Include="Server\Site.cs" />
+    <Compile Include="Server\Handler.cs" />
+    <Compile Include="Server\HelloWorldHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -78,5 +83,6 @@
     <Folder Include="Client\" />
     <Folder Include="Tests\" />
     <Folder Include="Framework\" />
+    <Folder Include="Server\" />
   </ItemGroup>
 </Project>
