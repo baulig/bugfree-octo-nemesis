@@ -64,7 +64,7 @@ namespace Xamarin.WebTests
 			var post = new SimplePostHandler (listener);
 			listener.Start ();
 
-			var request = post.CreateRequest (TransferMode.Default, "Hello World!");
+			var request = post.CreateRequest (TransferMode.Chunked, "Hello World!");
 			var response = (HttpWebResponse)request.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
 		}

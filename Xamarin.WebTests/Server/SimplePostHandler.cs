@@ -26,6 +26,8 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Text;
+using System.Globalization;
 using System.Collections.Generic;
 
 namespace Xamarin.WebTests.Server
@@ -87,6 +89,9 @@ namespace Xamarin.WebTests.Server
 					return false;
 				}
 
+				var body = ReadChunkedBody (connection);
+				Console.WriteLine ("CHUNKED BODY: |{0}|", body);
+
 				return true;
 
 			default:
@@ -110,12 +115,37 @@ namespace Xamarin.WebTests.Server
 			return true;
 		}
 
+		string ReadChunkedBody (Connection connection)
+		{
+			var body = new StringBuilder ();
+
+			do {
+				var header = connection.RequestReader.ReadLine ();
+				var length = int.Parse (header, NumberStyles.HexNumber);
+				if (length == 0)
+					break;
+
+				var buffer = new char [length];
+				var ret = connection.RequestReader.Read (buffer, 0, length);
+				if (ret != length)
+					throw new InvalidOperationException ();
+
+				var empty = connection.RequestReader.ReadLine ();
+				if (!string.IsNullOrEmpty (empty))
+					throw new InvalidOperationException ();
+
+				body.Append (buffer);
+			} while (true);
+
+			return body.ToString ();
+		}
+
 		protected TransferMode ParseMode (IDictionary<string,string> query)
 		{
 			if (!query.ContainsKey ("mode"))
 				return TransferMode.Default;
 
-			switch (query ["mode"]) {
+			switch (query ["mode"].ToLowerInvariant ()) {
 			case "chunked":
 				return TransferMode.Chunked;
 			case "length":

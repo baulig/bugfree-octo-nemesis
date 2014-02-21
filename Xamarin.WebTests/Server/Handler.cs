@@ -84,6 +84,8 @@ namespace Xamarin.WebTests.Server
 
 		protected void WriteSimpleResponse (Connection connection, int status, string message, string body)
 		{
+			Console.WriteLine ("RESPONSE: {0} {1} {2}", status, message, body);
+
 			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0} {1}", status, message);
 			connection.ResponseWriter.WriteLine ("Content-Type: text/plain");
 			if (body != null) {

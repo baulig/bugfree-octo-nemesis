@@ -105,7 +105,7 @@ namespace Xamarin.WebTests.Server
 					throw new InvalidOperationException ();
 
 				var headerName = line.Substring (0, pos);
-				var headerValue = line.Substring (pos + 1);
+				var headerValue = line.Substring (pos + 1).Trim ();
 				headers.Add (headerName, headerValue);
 
 				Console.WriteLine ("HEADER: |{0}|{1}|", headerName, headerValue);
