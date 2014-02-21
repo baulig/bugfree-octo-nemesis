@@ -24,6 +24,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
+using System.Net;
+using System.Collections.Generic;
 
 namespace Xamarin.WebTests.Server
 {
@@ -43,6 +46,53 @@ namespace Xamarin.WebTests.Server
 		{
 			Listener = listener;
 			Uri = Listener.RegisterSite (path, this);
+		}
+
+		protected IDictionary<string,string> ParseQuery (Connection connection)
+		{
+			var dict = new Dictionary<string,string> ();
+			var query = connection.RequestUri.Query;
+			if (string.IsNullOrEmpty (query))
+				return dict;
+			if (query [0] != '?')
+				throw new InvalidOperationException ();
+
+			query = query.Substring (1);
+			var parts = query.Split (new char[] { '&' }, StringSplitOptions.None);
+			Console.WriteLine ("QUERY PARTS: {0}", parts.Length);
+
+			foreach (var part in parts) {
+				int pos = part.IndexOf ('=');
+				var key = part.Substring (0, pos);
+				var value = part.Substring (pos + 1);
+				dict.Add (key, value);
+				Console.WriteLine ("QUERY: {0} {1}", key, value);
+			}
+
+			return dict;
+		}
+
+		protected void WriteError (Connection connection, string message, params object[] args)
+		{
+			WriteSimpleResponse (connection, 500, "ERROR", string.Format (message, args));
+		}
+
+		protected void WriteSuccess (Connection connection, string body = null)
+		{
+			WriteSimpleResponse (connection, 200, "OK", body);
+		}
+
+		protected void WriteSimpleResponse (Connection connection, int status, string message, string body)
+		{
+			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0} {1}", status, message);
+			connection.ResponseWriter.WriteLine ("Content-Type: text/plain");
+			if (body != null) {
+				connection.ResponseWriter.WriteLine ("Content-Length: {0}", body.Length);
+				connection.ResponseWriter.WriteLine ("");
+				connection.ResponseWriter.WriteLine (body);
+			} else {
+				connection.ResponseWriter.WriteLine ("");
+			}
 		}
 
 		public abstract void HandleRequest (Connection connection);

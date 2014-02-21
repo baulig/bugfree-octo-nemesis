@@ -72,12 +72,26 @@ namespace Xamarin.WebTests.Server
 			Console.WriteLine ("GOT SOCKET: {0}", socket);
 
 			try {
-				var connection = new Connection (this, socket);
-				socket.Close ();
+				HandleConnection (socket);
 			} catch (Exception ex) {
 				Console.WriteLine ("EX: {0}", ex);
 				throw;
+			} finally {
+				socket.Close ();
 			}
+		}
+
+		void HandleConnection (Socket socket)
+		{
+			var connection = new Connection (this, socket);
+			connection.ReadHeaders ();
+
+			Console.WriteLine ("PATH: {0} - {1} {2}", connection.RequestUri, connection.RequestUri.AbsolutePath, connection.RequestUri.Query);
+
+			var site = GetSite (connection.RequestUri.AbsolutePath);
+			site.Handler.HandleRequest (connection);
+
+			connection.Close ();
 		}
 
 	}

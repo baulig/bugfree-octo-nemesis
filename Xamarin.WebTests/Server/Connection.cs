@@ -39,7 +39,6 @@ namespace Xamarin.WebTests.Server
 		NetworkStream stream;
 		StreamReader reader;
 		StreamWriter writer;
-		string method, path;
 		Dictionary<string,string> headers;
 
 		public Connection (Listener server, Socket socket)
@@ -51,15 +50,33 @@ namespace Xamarin.WebTests.Server
 			reader = new StreamReader (stream);
 			writer = new StreamWriter (stream);
 			headers = new Dictionary<string, string> ();
+		}
 
-			HandleConnection ();
+		public string Method {
+			get; private set;
+		}
+
+		public string Path {
+			get; private set;
+		}
+
+		public Uri RequestUri {
+			get; private set;
+		}
+
+		public StreamReader RequestReader {
+			get { return reader; }
 		}
 
 		public StreamWriter ResponseWriter {
 			get { return writer; }
 		}
 
-		void HandleConnection ()
+		public IDictionary<string,string> Headers {
+			get { return headers; }
+		}
+
+		public void ReadHeaders ()
 		{
 			string line;
 			var header = reader.ReadLine ();
@@ -67,15 +84,16 @@ namespace Xamarin.WebTests.Server
 			if (fields.Length != 3)
 				throw new InvalidOperationException ();
 
-			method = fields [0];
-			path = fields [1];
+			Method = fields [0];
+			Path = fields [1];
+			RequestUri = new Uri (server.Uri, Path);
 			var proto = fields [2];
 
-			Console.WriteLine ("HEADER: {0} {1} {2}", method, path, proto);
+			Console.WriteLine ("HEADER: {0} {1} {2}", Method, Path, proto);
 			if (!proto.Equals ("HTTP/1.1"))
 				throw new InvalidOperationException ();
 
-			if (!method.Equals ("GET") && !method.Equals ("PUT") && !method.Equals ("POST"))
+			if (!Method.Equals ("GET") && !Method.Equals ("PUT") && !Method.Equals ("POST"))
 				throw new InvalidOperationException ();
 
 			while ((line = reader.ReadLine ()) != null) {
@@ -94,14 +112,12 @@ namespace Xamarin.WebTests.Server
 			}
 
 			Console.WriteLine ("DONE READING HEADERS");
+		}
 
-			var site = server.GetSite (path);
-			site.Handler.HandleRequest (this);
-
+		public void Close ()
+		{
 			writer.Flush ();
 			stream.Close ();
-
-			Console.WriteLine ("DONE HANDLING REQUEST!");
 		}
 	}
 }
