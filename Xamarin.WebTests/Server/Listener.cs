@@ -36,9 +36,11 @@ namespace Xamarin.WebTests.Server
 	{
 		TcpListener listener;
 		Dictionary<string,Site> sites;
+		Uri uri;
 
 		public Listener (int port)
 		{
+			uri = new Uri (string.Format ("http://127.0.0.1:{0}/", port));
 			listener = new TcpListener (IPAddress.Loopback, port);
 			sites = new Dictionary<string, Site> ();
 		}
@@ -49,14 +51,19 @@ namespace Xamarin.WebTests.Server
 			listener.BeginAcceptSocket (AcceptSocketCB, null);
 		}
 
-		public void RegisterSite (string path, Handler handler)
+		public Uri RegisterSite (string path, Handler handler)
 		{
 			sites.Add (path, new Site (path, handler));
+			return new Uri (uri, path);
 		}
 
 		public Site GetSite (string path)
 		{
 			return sites [path];
+		}
+
+		public Uri Uri {
+			get { return uri; }
 		}
 
 		void AcceptSocketCB (IAsyncResult ar)

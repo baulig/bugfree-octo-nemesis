@@ -70,6 +70,7 @@
     <Compile Include="Server\Site.cs" />
     <Compile Include="Server\Handler.cs" />
     <Compile Include="Server\HelloWorldHandler.cs" />
+    <Compile Include="Server\SimplePostHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

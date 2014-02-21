@@ -60,10 +60,11 @@ namespace Xamarin.WebTests
 		static void TestServer ()
 		{
 			var listener = new Listener (9999);
-			listener.RegisterSite ("/test/", new HelloWorldHandler ());
+			new HelloWorldHandler (listener);
+			var post = new SimplePostHandler (listener);
 			listener.Start ();
 
-			var request = HttpWebRequest.Create ("http://127.0.0.1:9999/test/");
+			var request = post.CreateRequest (TransferMode.Default, "Hello World!");
 			var response = (HttpWebResponse)request.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
 		}

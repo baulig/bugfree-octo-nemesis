@@ -1,5 +1,5 @@
 ﻿//
-// Behavior.cs
+// SimplePostHandler.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,28 +24,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
+using System.Net;
 
 namespace Xamarin.WebTests.Server
 {
-	public abstract class Handler
+	using Client;
+	using Framework;
+
+	public class SimplePostHandler : Handler
 	{
-		public Listener Listener {
-			get;
-			private set;
-		}
-
-		public Uri Uri {
-			get;
-			private set;
-		}
-
-		protected Handler (Listener listener, string path)
+		public SimplePostHandler (Listener listener)
+			: base (listener, "/post/")
 		{
-			Listener = listener;
-			Uri = Listener.RegisterSite (path, this);
 		}
 
-		public abstract void HandleRequest (Connection connection);
+		public override void HandleRequest (Connection connection)
+		{
+			connection.ResponseWriter.WriteLine ("HTTP/1.1 200 OK");
+			connection.ResponseWriter.WriteLine ("");
+			connection.ResponseWriter.WriteLine ("Hello World!");
+		}
+
+		public HttpWebRequest CreateRequest (TransferMode mode, string body)
+		{
+			var request = (HttpWebRequest)HttpWebRequest.Create (Uri);
+			request.ContentType = "text/plain";
+			request.Method = "POST";
+
+			switch (mode) {
+			case TransferMode.Chunked:
+				request.SendChunked = true;
+				break;
+			case TransferMode.ContentLength:
+				request.ContentLength = body.Length;
+				break;
+			}
+
+			using (var writer = new StreamWriter (request.GetRequestStream ())) {
+				writer.Write (body);
+			}
+
+			return request;
+		}
 	}
 }
 

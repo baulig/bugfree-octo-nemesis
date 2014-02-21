@@ -29,6 +29,11 @@ namespace Xamarin.WebTests.Server
 {
 	public class HelloWorldHandler : Handler
 	{
+		public HelloWorldHandler (Listener listener)
+			: base (listener, "/hello/")
+		{
+		}
+
 		public override void HandleRequest (Connection connection)
 		{
 			connection.ResponseWriter.WriteLine ("HTTP/1.1 200 OK");
