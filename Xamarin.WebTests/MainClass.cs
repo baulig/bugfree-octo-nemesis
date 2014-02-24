@@ -73,12 +73,14 @@ namespace Xamarin.WebTests
 
 			var random = new Random ();
 			var sb = new StringBuilder ();
-			for (int i = 0; i < 655360; i++)
+			for (int i = 0; i < 3655360; i++)
 				sb.AppendFormat ("{0:x2}", random.Next ());
 			var largeData = new ASCIIEncoding ().GetBytes (sb.ToString ());
 
 			var wc = new WebClient ();
-			wc.UploadData (post.GetUri (TransferMode.Default, 4096, 100, 500), largeData);
+			// wc.UploadProgressChanged += (sender, e) => Console.WriteLine ("UPLOAD PROGRESS: {0} {1} {2}", e.BytesSent, e.TotalBytesToSend, e.ProgressPercentage);
+			wc.UploadDataCompleted += (sender, e) => Console.WriteLine ("UPLOAD COMPLETED");
+			wc.UploadData (post.GetUri (TransferMode.Default, 500000, 0, 0), largeData);
 		}
 
 		static void GetPuppySsl ()

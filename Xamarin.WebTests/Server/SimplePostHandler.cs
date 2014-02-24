@@ -128,6 +128,7 @@ namespace Xamarin.WebTests.Server
 			int offset = 0;
 			while (offset < length) {
 				int delay = readChunkMinDelay + random.Next (delayRange);
+				Console.WriteLine ("READ STATIC BODY: {0} {1} {2}", offset, length, delay);
 				Thread.Sleep (delay);
 
 				var size = Math.Min (length - offset, readChunkSize);
