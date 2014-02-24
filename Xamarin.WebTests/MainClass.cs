@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
@@ -64,9 +65,20 @@ namespace Xamarin.WebTests
 			var post = new SimplePostHandler (listener);
 			listener.Start ();
 
+			#if FIXME
 			var request = post.CreateRequest (TransferMode.Chunked, "Hello World!");
 			var response = (HttpWebResponse)request.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+			#endif
+
+			var random = new Random ();
+			var sb = new StringBuilder ();
+			for (int i = 0; i < 655360; i++)
+				sb.AppendFormat ("{0:x2}", random.Next ());
+			var largeData = new ASCIIEncoding ().GetBytes (sb.ToString ());
+
+			var wc = new WebClient ();
+			wc.UploadData (post.GetUri (TransferMode.Default, 4096, 100, 500), largeData);
 		}
 
 		static void GetPuppySsl ()

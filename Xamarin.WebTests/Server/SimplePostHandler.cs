@@ -27,6 +27,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Globalization;
 using System.Collections.Generic;
 
@@ -37,6 +38,10 @@ namespace Xamarin.WebTests.Server
 
 	public class SimplePostHandler : Handler
 	{
+		int readChunkSize = 4096;
+		int readChunkMinDelay = 0;
+		int readChunkMaxDelay = 0;
+
 		public SimplePostHandler (Listener listener)
 			: base (listener, "/post/")
 		{
@@ -46,6 +51,14 @@ namespace Xamarin.WebTests.Server
 		{
 			var query = ParseQuery (connection);
 			var mode = ParseMode (query);
+
+			string value;
+			if (query.TryGetValue ("readChunkSize", out value))
+				readChunkSize = int.Parse (value);
+			if (query.TryGetValue ("readChunkMinDelay", out value))
+				readChunkMinDelay = int.Parse (value);
+			if (query.TryGetValue ("readChunkMaxDelay", out value))
+				readChunkMaxDelay = int.Parse (value);
 
 			if (!CheckTransferMode (connection, mode))
 				return;
@@ -104,12 +117,27 @@ namespace Xamarin.WebTests.Server
 		{
 			var length = int.Parse (connection.Headers ["Content-Length"]);
 
-			var buffer = new char [length];
-			int ret = connection.RequestReader.Read (buffer, 0, length);
+			string type;
+			if (connection.Headers.TryGetValue ("Content-Type", out type))
+				Console.WriteLine ("CONTENT-TYPE: {0} {1}", type);
 
-			if (ret != length) {
-				WriteError (connection, "Expected {0} bytes, but got {1}.", length, ret);
-				return false;
+			var random = new Random ();
+			var delayRange = readChunkMaxDelay - readChunkMinDelay;
+
+			var buffer = new char [length];
+			int offset = 0;
+			while (offset < length) {
+				int delay = readChunkMinDelay + random.Next (delayRange);
+				Thread.Sleep (delay);
+
+				var size = Math.Min (length - offset, readChunkSize);
+				int ret = connection.RequestReader.Read (buffer, offset, size);
+				if (ret <= 0) {
+					WriteError (connection, "Failed to read body.");
+					return false;
+				}
+
+				offset += ret;
 			}
 
 			return true;
@@ -167,6 +195,19 @@ namespace Xamarin.WebTests.Server
 			default:
 				return "default";
 			}
+		}
+
+		public Uri GetUri (TransferMode mode, int? readChunkSize = null, int? readChunkMinDelay = null, int? readChunkMaxDelay = null)
+		{
+			var query = new StringBuilder ();
+			query.AppendFormat ("?mode={0}", GetModeString (mode));
+			if (readChunkSize != null)
+				query.AppendFormat ("&readChunkSize={0}", readChunkSize);
+			if (readChunkMinDelay != null) {
+				query.AppendFormat ("&readChunkMinDelay={0}", readChunkMinDelay);
+				query.AppendFormat ("&readChunkMaxDelay={0}", readChunkMaxDelay ?? readChunkMinDelay);
+			}
+			return new Uri (Uri.AbsoluteUri + query.ToString ());
 		}
 
 		public HttpWebRequest CreateRequest (TransferMode mode, string body)
