@@ -38,6 +38,31 @@ namespace Xamarin.WebTests.Server
 
 	public class DeleteHandler : Handler
 	{
+		public class QueryData {
+			public bool HasBody {
+				get; set;
+			}
+
+			public QueryData (DeleteHandler handler, Connection connection)
+			{
+				var query = handler.ParseQuery (connection);
+
+				string value;
+				if (query.TryGetValue ("hasBody", out value))
+					HasBody = bool.Parse (value);
+			}
+
+			public QueryData (bool hasBody)
+			{
+				HasBody = hasBody;
+			}
+
+			public string GetQueryString ()
+			{
+				return HasBody ? "?hasBody=true" : string.Empty;
+			}
+		}
+
 		public DeleteHandler (Listener listener)
 			: base (listener, "/delete/")
 		{
@@ -50,18 +75,63 @@ namespace Xamarin.WebTests.Server
 				return;
 			}
 
-			if (connection.Headers.ContainsKey ("Content-Length")) {
-				WriteError (connection, "DELETE with Content-Length");
-				return;
-			}
+			var query = new QueryData (this, connection);
 
-			WriteSuccess (connection);
+			if (CheckRequest (connection, query))
+				WriteSuccess (connection);
 		}
 
-		public HttpWebRequest CreateRequest ()
+		bool CheckRequest (Connection connection, QueryData query)
 		{
-			var request = (HttpWebRequest)HttpWebRequest.Create (Uri.AbsoluteUri);
+			string value;
+			if (query.HasBody) {
+				if (!connection.Headers.TryGetValue ("Content-Length", out value)) {
+					WriteError (connection, "Missing Content-Length");
+					return false;
+				}
+
+				int length = int.Parse (value);
+				return ReadStaticBody (connection, length);
+			} else {
+				if (connection.Headers.ContainsKey ("Content-Length")) {
+					WriteError (connection, "Content-Length not allowed");
+					return false;
+				}
+
+				return true;
+			}
+		}
+
+		bool ReadStaticBody (Connection connection, int length)
+		{
+			var buffer = new char [length];
+			int offset = 0;
+			while (offset < length) {
+				var size = Math.Min (length - offset, 4096);
+				int ret = connection.RequestReader.Read (buffer, offset, size);
+				if (ret <= 0) {
+					WriteError (connection, "Failed to read body.");
+					return false;
+				}
+
+				offset += ret;
+			}
+
+			return true;
+		}
+
+		public HttpWebRequest CreateRequest (string body = null)
+		{
+			var query = new QueryData (body != null);
+			var request = (HttpWebRequest)HttpWebRequest.Create (Uri.AbsoluteUri + query.GetQueryString ());
 			request.Method = "DELETE";
+
+			if (body != null) {
+				using (var writer = new StreamWriter (request.GetRequestStream ())) {
+					writer.Write (body);
+				}
+			}
+
 			return request;
 		}
 	}

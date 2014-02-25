@@ -38,9 +38,83 @@ namespace Xamarin.WebTests.Server
 
 	public class SimplePostHandler : Handler
 	{
-		int readChunkSize = 4096;
-		int readChunkMinDelay = 0;
-		int readChunkMaxDelay = 0;
+		public class QueryData {
+			public TransferMode Mode {
+				get;
+				private set;
+			}
+
+			public int? ReadChunkSize {
+				get;
+				private set;
+			}
+
+			public int? ReadChunkMinDelay {
+				get;
+				private set;
+			}
+
+			public int? ReadChunkMaxDelay {
+				get;
+				private set;
+			}
+
+			static TransferMode ParseMode (IDictionary<string,string> query)
+			{
+				if (!query.ContainsKey ("mode"))
+					return TransferMode.Default;
+
+				switch (query ["mode"].ToLowerInvariant ()) {
+				case "chunked":
+					return TransferMode.Chunked;
+				case "length":
+					return TransferMode.ContentLength;
+				case "default":
+					return TransferMode.Default;
+				default:
+					throw new InvalidOperationException ();
+				}
+			}
+
+			public QueryData (SimplePostHandler handler, Connection connection)
+			{
+				var query = handler.ParseQuery (connection);
+
+				Mode = ParseMode (query);
+
+				string value;
+				if (query.TryGetValue ("readChunkSize", out value))
+					ReadChunkSize = int.Parse (value);
+				else
+					ReadChunkSize = 4096;
+
+				if (query.TryGetValue ("readChunkMinDelay", out value))
+					ReadChunkMinDelay = int.Parse (value);
+				if (query.TryGetValue ("readChunkMaxDelay", out value))
+					ReadChunkMaxDelay = int.Parse (value);
+			}
+
+			public QueryData (TransferMode mode, int? readChunkSize = null, int? readChunkMinDelay = null, int? readChunkMaxDelay = null)
+			{
+				Mode = mode;
+				ReadChunkSize = readChunkSize;
+				ReadChunkMinDelay = readChunkMinDelay;
+				ReadChunkMaxDelay = readChunkMaxDelay;
+			}
+
+			public string GetQueryString ()
+			{
+				var query = new StringBuilder ();
+				query.AppendFormat ("?mode={0}", GetModeString (Mode));
+				if (ReadChunkSize != null)
+					query.AppendFormat ("&readChunkSize={0}", ReadChunkSize);
+				if (ReadChunkMinDelay != null) {
+					query.AppendFormat ("&readChunkMinDelay={0}", ReadChunkMinDelay);
+					query.AppendFormat ("&readChunkMaxDelay={0}", ReadChunkMaxDelay ?? ReadChunkMinDelay);
+				}
+				return query.ToString ();
+			}
+		}
 
 		public SimplePostHandler (Listener listener)
 			: base (listener, "/post/")
@@ -54,28 +128,17 @@ namespace Xamarin.WebTests.Server
 				return;
 			}
 
-			var query = ParseQuery (connection);
-			var mode = ParseMode (query);
+			var query = new QueryData (this, connection);
 
-			string value;
-			if (query.TryGetValue ("readChunkSize", out value))
-				readChunkSize = int.Parse (value);
-			if (query.TryGetValue ("readChunkMinDelay", out value))
-				readChunkMinDelay = int.Parse (value);
-			if (query.TryGetValue ("readChunkMaxDelay", out value))
-				readChunkMaxDelay = int.Parse (value);
-
-			if (!CheckTransferMode (connection, mode))
+			if (!CheckTransferMode (connection, query))
 				return;
 
 			WriteSuccess (connection);
 		}
 
-		bool CheckTransferMode (Connection connection, TransferMode mode)
+		bool CheckTransferMode (Connection connection, QueryData query)
 		{
-			Console.WriteLine ("TRANSFER MODE: {0}", mode);
-
-			switch (mode) {
+			switch (query.Mode) {
 			case TransferMode.Default:
 			case TransferMode.ContentLength:
 				if (!connection.Headers.ContainsKey ("Content-Length")) {
@@ -88,7 +151,7 @@ namespace Xamarin.WebTests.Server
 					return false;
 				}
 
-				return ReadStaticBody (connection);
+				return ReadStaticBody (connection, query);
 
 			case TransferMode.Chunked:
 				if (connection.Headers.ContainsKey ("Content-Length")) {
@@ -113,12 +176,12 @@ namespace Xamarin.WebTests.Server
 				return true;
 
 			default:
-				WriteError (connection, "Unknown TransferMode: '{0}'", mode);
+				WriteError (connection, "Unknown TransferMode: '{0}'", query.Mode);
 				return false;
 			}
 		}
 
-		bool ReadStaticBody (Connection connection)
+		bool ReadStaticBody (Connection connection, QueryData query)
 		{
 			var length = int.Parse (connection.Headers ["Content-Length"]);
 
@@ -126,17 +189,21 @@ namespace Xamarin.WebTests.Server
 			if (connection.Headers.TryGetValue ("Content-Type", out type))
 				Console.WriteLine ("CONTENT-TYPE: {0} {1}", type);
 
+			var chunkSize = query.ReadChunkSize ?? 4096;
+			var minDelay = query.ReadChunkMinDelay ?? 0;
+			var maxDelay = query.ReadChunkMaxDelay ?? 0;
+
 			var random = new Random ();
-			var delayRange = readChunkMaxDelay - readChunkMinDelay;
+			var delayRange = maxDelay - minDelay;
 
 			var buffer = new char [length];
 			int offset = 0;
 			while (offset < length) {
-				int delay = readChunkMinDelay + random.Next (delayRange);
+				int delay = minDelay + random.Next (delayRange);
 				Console.WriteLine ("READ STATIC BODY: {0} {1} {2}", offset, length, delay);
 				Thread.Sleep (delay);
 
-				var size = Math.Min (length - offset, readChunkSize);
+				var size = Math.Min (length - offset, chunkSize);
 				int ret = connection.RequestReader.Read (buffer, offset, size);
 				if (ret <= 0) {
 					WriteError (connection, "Failed to read body.");
@@ -174,23 +241,6 @@ namespace Xamarin.WebTests.Server
 			return body.ToString ();
 		}
 
-		protected TransferMode ParseMode (IDictionary<string,string> query)
-		{
-			if (!query.ContainsKey ("mode"))
-				return TransferMode.Default;
-
-			switch (query ["mode"].ToLowerInvariant ()) {
-			case "chunked":
-				return TransferMode.Chunked;
-			case "length":
-				return TransferMode.ContentLength;
-			case "default":
-				return TransferMode.Default;
-			default:
-				throw new InvalidOperationException ();
-			}
-		}
-
 		protected static string GetModeString (TransferMode mode)
 		{
 			switch (mode) {
@@ -203,27 +253,24 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		public Uri GetUri (TransferMode mode, int? readChunkSize = null, int? readChunkMinDelay = null, int? readChunkMaxDelay = null)
+		public Uri GetUri (QueryData query)
 		{
-			var query = new StringBuilder ();
-			query.AppendFormat ("?mode={0}", GetModeString (mode));
-			if (readChunkSize != null)
-				query.AppendFormat ("&readChunkSize={0}", readChunkSize);
-			if (readChunkMinDelay != null) {
-				query.AppendFormat ("&readChunkMinDelay={0}", readChunkMinDelay);
-				query.AppendFormat ("&readChunkMaxDelay={0}", readChunkMaxDelay ?? readChunkMinDelay);
-			}
-			return new Uri (Uri.AbsoluteUri + query.ToString ());
+			return new Uri (Uri.AbsoluteUri + query.GetQueryString ());
 		}
 
 		public HttpWebRequest CreateRequest (TransferMode mode, string body)
 		{
-			var request = (HttpWebRequest)HttpWebRequest.Create (Uri.AbsoluteUri + "?mode=" + GetModeString (mode));
+			return CreateRequest (new QueryData (mode), body);
+		}
+
+		public HttpWebRequest CreateRequest (QueryData query, string body)
+		{
+			var request = (HttpWebRequest)HttpWebRequest.Create (GetUri (query));
 
 			request.ContentType = "text/plain";
 			request.Method = "POST";
 
-			switch (mode) {
+			switch (query.Mode) {
 			case TransferMode.Chunked:
 				request.SendChunked = true;
 				break;

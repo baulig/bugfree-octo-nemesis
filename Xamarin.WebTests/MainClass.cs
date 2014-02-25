@@ -62,13 +62,18 @@ namespace Xamarin.WebTests
 		{
 			var listener = new Listener (9999);
 			new HelloWorldHandler (listener);
-			var post = new SimplePostHandler (listener);
 			var delete = new DeleteHandler (listener);
 			listener.Start ();
 
-			var request = delete.CreateRequest ();
+			var request = delete.CreateRequest ("I have a body!");
 			var response = (HttpWebResponse)request.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+
+			listener.Start ();
+			request = delete.CreateRequest ();
+			response = (HttpWebResponse)request.GetResponse ();
+			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+
 		}
 
 		static void GetPuppySsl ()

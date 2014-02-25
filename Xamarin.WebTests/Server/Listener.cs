@@ -43,11 +43,11 @@ namespace Xamarin.WebTests.Server
 			uri = new Uri (string.Format ("http://127.0.0.1:{0}/", port));
 			listener = new TcpListener (IPAddress.Loopback, port);
 			sites = new Dictionary<string, Site> ();
+			listener.Start ();
 		}
 
 		public void Start ()
 		{
-			listener.Start ();
 			listener.BeginAcceptSocket (AcceptSocketCB, null);
 		}
 
