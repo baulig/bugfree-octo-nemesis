@@ -49,6 +49,11 @@ namespace Xamarin.WebTests.Server
 
 		public override void HandleRequest (Connection connection)
 		{
+			if (!connection.Method.Equals ("POST") && !connection.Method.Equals ("PUT")) {
+				WriteError (connection, "Wrong method: {0}", connection.Method);
+				return;
+			}
+
 			var query = ParseQuery (connection);
 			var mode = ParseMode (query);
 

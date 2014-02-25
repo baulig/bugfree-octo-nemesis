@@ -63,24 +63,12 @@ namespace Xamarin.WebTests
 			var listener = new Listener (9999);
 			new HelloWorldHandler (listener);
 			var post = new SimplePostHandler (listener);
+			var delete = new DeleteHandler (listener);
 			listener.Start ();
 
-			#if FIXME
-			var request = post.CreateRequest (TransferMode.Chunked, "Hello World!");
+			var request = delete.CreateRequest ();
 			var response = (HttpWebResponse)request.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
-			#endif
-
-			var random = new Random ();
-			var sb = new StringBuilder ();
-			for (int i = 0; i < 3655360; i++)
-				sb.AppendFormat ("{0:x2}", random.Next ());
-			var largeData = new ASCIIEncoding ().GetBytes (sb.ToString ());
-
-			var wc = new WebClient ();
-			// wc.UploadProgressChanged += (sender, e) => Console.WriteLine ("UPLOAD PROGRESS: {0} {1} {2}", e.BytesSent, e.TotalBytesToSend, e.ProgressPercentage);
-			wc.UploadDataCompleted += (sender, e) => Console.WriteLine ("UPLOAD COMPLETED");
-			wc.UploadData (post.GetUri (TransferMode.Default, 500000, 0, 0), largeData);
 		}
 
 		static void GetPuppySsl ()

@@ -93,9 +93,6 @@ namespace Xamarin.WebTests.Server
 			if (!proto.Equals ("HTTP/1.1"))
 				throw new InvalidOperationException ();
 
-			if (!Method.Equals ("GET") && !Method.Equals ("PUT") && !Method.Equals ("POST"))
-				throw new InvalidOperationException ();
-
 			while ((line = reader.ReadLine ()) != null) {
 				if (string.IsNullOrEmpty (line))
 					break;

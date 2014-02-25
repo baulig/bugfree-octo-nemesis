@@ -1,5 +1,5 @@
 ﻿//
-// HelloWorldBehavior.cs
+// DeleteHandler.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,25 +24,45 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Globalization;
+using System.Collections.Generic;
 
 namespace Xamarin.WebTests.Server
 {
-	public class HelloWorldHandler : Handler
+	using Client;
+	using Framework;
+
+	public class DeleteHandler : Handler
 	{
-		public HelloWorldHandler (Listener listener)
-			: base (listener, "/hello/")
+		public DeleteHandler (Listener listener)
+			: base (listener, "/delete/")
 		{
 		}
 
 		public override void HandleRequest (Connection connection)
 		{
-			if (!connection.Method.Equals ("GET")) {
+			if (!connection.Method.Equals ("DELETE")) {
 				WriteError (connection, "Wrong method: {0}", connection.Method);
 				return;
 			}
 
-			WriteSuccess (connection, "Hello World!");
+			if (connection.Headers.ContainsKey ("Content-Length")) {
+				WriteError (connection, "DELETE with Content-Length");
+				return;
+			}
+
+			WriteSuccess (connection);
+		}
+
+		public HttpWebRequest CreateRequest ()
+		{
+			var request = (HttpWebRequest)HttpWebRequest.Create (Uri.AbsoluteUri);
+			request.Method = "DELETE";
+			return request;
 		}
 	}
 }
-
