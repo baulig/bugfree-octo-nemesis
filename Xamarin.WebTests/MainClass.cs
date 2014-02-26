@@ -61,27 +61,35 @@ namespace Xamarin.WebTests
 		static void TestServer ()
 		{
 			var listener = new Listener (9999);
-			new HelloWorldHandler (listener);
+
+			TestPost (listener);
+		}
+
+		static void TestPost (Listener listener)
+		{
 			var post = new SimplePostHandler (listener, TransferMode.Default);
 
-			listener.Start ();
 			var postReq = post.CreateRequest (null);
+			Console.WriteLine ("TEST POST");
 			var postRes = (HttpWebResponse)postReq.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);
+			Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
 		}
 
 		static void TestDelete (Listener listener)
 		{
 			var delete = new DeleteHandler (listener);
-			listener.Start ();
 			var request = delete.CreateRequest ("I have a body!");
 			var response = (HttpWebResponse)request.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+			Console.WriteLine ("GOT RESPONSE: {0} {1}", response.StatusCode, delete.Task.Result);
+		}
 
-			listener.Start ();
-			request = delete.CreateRequest ();
-			response = (HttpWebResponse)request.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+		static void TestDelete2 (Listener listener)
+		{
+			var delete = new DeleteHandler (listener);
+			var request = delete.CreateRequest ();
+			var response = (HttpWebResponse)request.GetResponse ();
+			Console.WriteLine ("GOT RESPONSE: {0} {1}", response.StatusCode, delete.Task.Result);
 		}
 
 		static void GetPuppySsl ()

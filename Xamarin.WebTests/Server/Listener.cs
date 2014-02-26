@@ -46,10 +46,6 @@ namespace Xamarin.WebTests.Server
 			listener = new TcpListener (IPAddress.Loopback, port);
 			handlers = new Dictionary<string, Handler> ();
 			listener.Start ();
-		}
-
-		public void Start ()
-		{
 			listener.BeginAcceptSocket (AcceptSocketCB, null);
 		}
 
@@ -69,14 +65,10 @@ namespace Xamarin.WebTests.Server
 			var socket = listener.EndAcceptSocket (ar);
 			Console.WriteLine ("GOT SOCKET: {0}", socket);
 
-			try {
-				HandleConnection (socket);
-			} catch (Exception ex) {
-				Console.WriteLine ("EX: {0}", ex);
-				throw;
-			} finally {
-				socket.Close ();
-			}
+			HandleConnection (socket);
+			socket.Close ();
+
+			listener.BeginAcceptSocket (AcceptSocketCB, null);
 		}
 
 		void HandleConnection (Socket socket)
@@ -89,8 +81,6 @@ namespace Xamarin.WebTests.Server
 			var path = connection.RequestUri.AbsolutePath;
 			var handler = handlers [path];
 			handlers.Remove (path);
-
-			listener.BeginAcceptSocket (AcceptSocketCB, null);
 
 			handler.HandleRequest (connection);
 

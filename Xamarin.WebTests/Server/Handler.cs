@@ -43,7 +43,7 @@ namespace Xamarin.WebTests.Server
 			private set;
 		}
 
-		public Task Task {
+		public Task<bool> Task {
 			get { return tcs.Task; }
 		}
 
@@ -116,9 +116,13 @@ namespace Xamarin.WebTests.Server
 		public void HandleRequest (Connection connection)
 		{
 			try {
+				Console.WriteLine ("HANDLE REQUEST: {0}", Uri);
 				var success = DoHandleRequest (connection);
+				Console.WriteLine ("HANDLE REQUEST DONE: {0} {1}", Uri, success);
 				tcs.SetResult (success);
 			} catch (Exception ex) {
+				Console.WriteLine ("HANDLE REQUEST EX: {0} {1}", Uri, ex);
+				WriteError (connection, "Caught unhandled exception", ex);
 				tcs.SetException (ex);
 			}
 		}
