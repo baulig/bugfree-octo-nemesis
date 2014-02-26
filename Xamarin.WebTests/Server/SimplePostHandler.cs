@@ -38,114 +38,80 @@ namespace Xamarin.WebTests.Server
 
 	public class SimplePostHandler : Handler
 	{
-		public class QueryData {
-			public TransferMode Mode {
-				get;
-				private set;
+		public TransferMode Mode {
+			get;
+			private set;
+		}
+
+		int? readChunkSize;
+		int? readChunkMinDelay, readChunkMaxDelay;
+		bool? allowWriteBuffering;
+
+		public int? ReadChunkSize {
+			get {
+				return readChunkSize;
 			}
-
-			public int? ReadChunkSize {
-				get;
-				private set;
-			}
-
-			public int? ReadChunkMinDelay {
-				get;
-				private set;
-			}
-
-			public int? ReadChunkMaxDelay {
-				get;
-				private set;
-			}
-
-			public bool? AllowWriteStreamBuffering {
-				get; set;
-			}
-
-			static TransferMode ParseMode (IDictionary<string,string> query)
-			{
-				if (!query.ContainsKey ("mode"))
-					return TransferMode.Default;
-
-				switch (query ["mode"].ToLowerInvariant ()) {
-				case "chunked":
-					return TransferMode.Chunked;
-				case "length":
-					return TransferMode.ContentLength;
-				case "default":
-					return TransferMode.Default;
-				default:
-					throw new InvalidOperationException ();
-				}
-			}
-
-			public QueryData (SimplePostHandler handler, Connection connection)
-			{
-				var query = handler.ParseQuery (connection);
-
-				Mode = ParseMode (query);
-
-				string value;
-				if (query.TryGetValue ("readChunkSize", out value))
-					ReadChunkSize = int.Parse (value);
-				else
-					ReadChunkSize = 4096;
-
-				if (query.TryGetValue ("readChunkMinDelay", out value))
-					ReadChunkMinDelay = int.Parse (value);
-				if (query.TryGetValue ("readChunkMaxDelay", out value))
-					ReadChunkMaxDelay = int.Parse (value);
-			}
-
-			public QueryData (TransferMode mode, int? readChunkSize = null, int? readChunkMinDelay = null, int? readChunkMaxDelay = null)
-			{
-				Mode = mode;
-				ReadChunkSize = readChunkSize;
-				ReadChunkMinDelay = readChunkMinDelay;
-				ReadChunkMaxDelay = readChunkMaxDelay;
-			}
-
-			public string GetQueryString ()
-			{
-				var query = new StringBuilder ();
-				query.AppendFormat ("?mode={0}", GetModeString (Mode));
-				if (ReadChunkSize != null)
-					query.AppendFormat ("&readChunkSize={0}", ReadChunkSize);
-				if (ReadChunkMinDelay != null) {
-					query.AppendFormat ("&readChunkMinDelay={0}", ReadChunkMinDelay);
-					query.AppendFormat ("&readChunkMaxDelay={0}", ReadChunkMaxDelay ?? ReadChunkMinDelay);
-				}
-				return query.ToString ();
+			set {
+				WantToModify ();
+				readChunkSize = value;
 			}
 		}
 
-		public SimplePostHandler (Listener listener)
-			: base (listener, "/post/")
+		public int? ReadChunkMinDelay {
+			get {
+				return readChunkMinDelay;
+			}
+			set {
+				WantToModify ();
+				readChunkMinDelay = value;
+			}
+		}
+
+		public int? ReadChunkMaxDelay {
+			get {
+				return readChunkMaxDelay;
+			}
+			set {
+				WantToModify ();
+				readChunkMaxDelay = value;
+			}
+		}
+
+		public bool? AllowWriteStreamBuffering {
+			get {
+				return allowWriteBuffering;
+			}
+			set {
+				WantToModify ();
+				allowWriteBuffering = value;
+			}
+		}
+
+		public SimplePostHandler (Listener listener, TransferMode mode)
+			: base (listener)
 		{
 		}
 
-		public override void HandleRequest (Connection connection)
+		protected override bool DoHandleRequest (Connection connection)
 		{
 			if (!connection.Method.Equals ("POST") && !connection.Method.Equals ("PUT")) {
 				WriteError (connection, "Wrong method: {0}", connection.Method);
-				return;
+				return false;
 			}
 
-			var query = new QueryData (this, connection);
-
-			if (!CheckTransferMode (connection, query))
-				return;
+			if (!CheckTransferMode (connection))
+				return false;
 
 			WriteSuccess (connection);
+			return true;
 		}
 
-		bool CheckTransferMode (Connection connection, QueryData query)
+		bool CheckTransferMode (Connection connection)
 		{
-			switch (query.Mode) {
+			switch (Mode) {
 			case TransferMode.Default:
 				Console.WriteLine ("DEFAULT: {0}", connection.Headers.ContainsKey ("Content-Length"));
-				return ReadStaticBody (connection, query);
+				return ReadStaticBody (connection);
 
 			case TransferMode.ContentLength:
 				if (!connection.Headers.ContainsKey ("Content-Length")) {
@@ -158,7 +124,7 @@ namespace Xamarin.WebTests.Server
 					return false;
 				}
 
-				return ReadStaticBody (connection, query);
+				return ReadStaticBody (connection);
 
 			case TransferMode.Chunked:
 				if (connection.Headers.ContainsKey ("Content-Length")) {
@@ -183,12 +149,12 @@ namespace Xamarin.WebTests.Server
 				return true;
 
 			default:
-				WriteError (connection, "Unknown TransferMode: '{0}'", query.Mode);
+				WriteError (connection, "Unknown TransferMode: '{0}'", Mode);
 				return false;
 			}
 		}
 
-		bool ReadStaticBody (Connection connection, QueryData query)
+		bool ReadStaticBody (Connection connection)
 		{
 			var length = int.Parse (connection.Headers ["Content-Length"]);
 
@@ -196,9 +162,9 @@ namespace Xamarin.WebTests.Server
 			if (connection.Headers.TryGetValue ("Content-Type", out type))
 				Console.WriteLine ("CONTENT-TYPE: {0}", type);
 
-			var chunkSize = query.ReadChunkSize ?? 4096;
-			var minDelay = query.ReadChunkMinDelay ?? 0;
-			var maxDelay = query.ReadChunkMaxDelay ?? 0;
+			var chunkSize = ReadChunkSize ?? length;
+			var minDelay = ReadChunkMinDelay ?? 0;
+			var maxDelay = ReadChunkMaxDelay ?? 0;
 
 			var random = new Random ();
 			var delayRange = maxDelay - minDelay;
@@ -248,40 +214,18 @@ namespace Xamarin.WebTests.Server
 			return body.ToString ();
 		}
 
-		protected static string GetModeString (TransferMode mode)
+		public HttpWebRequest CreateRequest (string body)
 		{
-			switch (mode) {
-			case TransferMode.Chunked:
-				return "chunked";
-			case TransferMode.ContentLength:
-				return "length";
-			default:
-				return "default";
-			}
-		}
-
-		public Uri GetUri (QueryData query)
-		{
-			return new Uri (Uri.AbsoluteUri + query.GetQueryString ());
-		}
-
-		public HttpWebRequest CreateRequest (TransferMode mode, string body)
-		{
-			return CreateRequest (new QueryData (mode), body);
-		}
-
-		public HttpWebRequest CreateRequest (QueryData query, string body)
-		{
-			var request = (HttpWebRequest)HttpWebRequest.Create (GetUri (query));
+			var request = CreateRequest ();
 
 			if (body != null)
 				request.ContentType = "text/plain";
 			request.Method = "POST";
 
-			if (query.AllowWriteStreamBuffering != null)
-				request.AllowWriteStreamBuffering = query.AllowWriteStreamBuffering.Value;
+			if (AllowWriteStreamBuffering != null)
+				request.AllowWriteStreamBuffering = AllowWriteStreamBuffering.Value;
 
-			switch (query.Mode) {
+			switch (Mode) {
 			case TransferMode.Chunked:
 				request.SendChunked = true;
 				break;

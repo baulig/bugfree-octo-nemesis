@@ -67,7 +67,6 @@
     <Compile Include="Client\AbstractPuppy.cs" />
     <Compile Include="Server\Listener.cs" />
     <Compile Include="Server\Connection.cs" />
-    <Compile Include="Server\Site.cs" />
     <Compile Include="Server\Handler.cs" />
     <Compile Include="Server\HelloWorldHandler.cs" />
     <Compile Include="Server\SimplePostHandler.cs" />

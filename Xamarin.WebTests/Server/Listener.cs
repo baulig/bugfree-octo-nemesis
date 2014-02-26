@@ -35,14 +35,16 @@ namespace Xamarin.WebTests.Server
 	public class Listener
 	{
 		TcpListener listener;
-		Dictionary<string,Site> sites;
+		Dictionary<string,Handler> handlers;
 		Uri uri;
+
+		static int nextId;
 
 		public Listener (int port)
 		{
 			uri = new Uri (string.Format ("http://127.0.0.1:{0}/", port));
 			listener = new TcpListener (IPAddress.Loopback, port);
-			sites = new Dictionary<string, Site> ();
+			handlers = new Dictionary<string, Handler> ();
 			listener.Start ();
 		}
 
@@ -51,15 +53,11 @@ namespace Xamarin.WebTests.Server
 			listener.BeginAcceptSocket (AcceptSocketCB, null);
 		}
 
-		public Uri RegisterSite (string path, Handler handler)
+		public Uri RegisterHandler (Handler handler)
 		{
-			sites.Add (path, new Site (path, handler));
+			var path = string.Format ("/{0}/{1}/", handler.GetType (), ++nextId);
+			handlers.Add (path, handler);
 			return new Uri (uri, path);
-		}
-
-		public Site GetSite (string path)
-		{
-			return sites [path];
 		}
 
 		public Uri Uri {
@@ -88,8 +86,13 @@ namespace Xamarin.WebTests.Server
 
 			Console.WriteLine ("PATH: {0} - {1} {2}", connection.RequestUri, connection.RequestUri.AbsolutePath, connection.RequestUri.Query);
 
-			var site = GetSite (connection.RequestUri.AbsolutePath);
-			site.Handler.HandleRequest (connection);
+			var path = connection.RequestUri.AbsolutePath;
+			var handler = handlers [path];
+			handlers.Remove (path);
+
+			listener.BeginAcceptSocket (AcceptSocketCB, null);
+
+			handler.HandleRequest (connection);
 
 			connection.Close ();
 		}

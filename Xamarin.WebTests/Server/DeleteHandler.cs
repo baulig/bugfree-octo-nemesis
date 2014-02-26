@@ -38,53 +38,35 @@ namespace Xamarin.WebTests.Server
 
 	public class DeleteHandler : Handler
 	{
-		public class QueryData {
-			public bool HasBody {
-				get; set;
-			}
+		bool hasBody;
 
-			public QueryData (DeleteHandler handler, Connection connection)
-			{
-				var query = handler.ParseQuery (connection);
-
-				string value;
-				if (query.TryGetValue ("hasBody", out value))
-					HasBody = bool.Parse (value);
-			}
-
-			public QueryData (bool hasBody)
-			{
-				HasBody = hasBody;
-			}
-
-			public string GetQueryString ()
-			{
-				return HasBody ? "?hasBody=true" : string.Empty;
-			}
+		public bool HasBody {
+			get { return hasBody; }
 		}
 
 		public DeleteHandler (Listener listener)
-			: base (listener, "/delete/")
+			: base (listener)
 		{
 		}
 
-		public override void HandleRequest (Connection connection)
+		protected override bool DoHandleRequest (Connection connection)
 		{
 			if (!connection.Method.Equals ("DELETE")) {
 				WriteError (connection, "Wrong method: {0}", connection.Method);
-				return;
+				return false;
 			}
 
-			var query = new QueryData (this, connection);
+			if (!CheckRequest (connection))
+				return false;
 
-			if (CheckRequest (connection, query))
-				WriteSuccess (connection);
+			WriteSuccess (connection);
+			return true;
 		}
 
-		bool CheckRequest (Connection connection, QueryData query)
+		bool CheckRequest (Connection connection)
 		{
 			string value;
-			if (query.HasBody) {
+			if (HasBody) {
 				if (!connection.Headers.TryGetValue ("Content-Length", out value)) {
 					WriteError (connection, "Missing Content-Length");
 					return false;
@@ -122,9 +104,10 @@ namespace Xamarin.WebTests.Server
 
 		public HttpWebRequest CreateRequest (string body = null)
 		{
-			var query = new QueryData (body != null);
-			var request = (HttpWebRequest)HttpWebRequest.Create (Uri.AbsoluteUri + query.GetQueryString ());
+			var request = CreateRequest ();
 			request.Method = "DELETE";
+
+			hasBody = body != null;
 
 			if (body != null) {
 				using (var writer = new StreamWriter (request.GetRequestStream ())) {

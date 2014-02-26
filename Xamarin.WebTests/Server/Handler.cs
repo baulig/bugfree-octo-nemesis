@@ -26,6 +26,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace Xamarin.WebTests.Server
@@ -42,10 +43,25 @@ namespace Xamarin.WebTests.Server
 			private set;
 		}
 
-		protected Handler (Listener listener, string path)
+		public Task Task {
+			get { return tcs.Task; }
+		}
+
+		bool hasRequest;
+		TaskCompletionSource<bool> tcs;
+
+		protected void WantToModify ()
+		{
+			if (hasRequest)
+				throw new InvalidOperationException ();
+		}
+
+		protected Handler (Listener listener)
 		{
 			Listener = listener;
-			Uri = Listener.RegisterSite (path, this);
+
+			tcs = new TaskCompletionSource<bool> ();
+			Uri = Listener.RegisterHandler (this);
 		}
 
 		protected IDictionary<string,string> ParseQuery (Connection connection)
@@ -97,7 +113,28 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		public abstract void HandleRequest (Connection connection);
+		public void HandleRequest (Connection connection)
+		{
+			try {
+				var success = DoHandleRequest (connection);
+				tcs.SetResult (success);
+			} catch (Exception ex) {
+				tcs.SetException (ex);
+			}
+		}
+
+		protected abstract bool DoHandleRequest (Connection connection);
+
+		protected HttpWebRequest CreateRequest ()
+		{
+			lock (this) {
+				if (hasRequest)
+					throw new InvalidOperationException ();
+				hasRequest = true;
+			}
+
+			return (HttpWebRequest)HttpWebRequest.Create (Uri);
+		}
 	}
 }
 
