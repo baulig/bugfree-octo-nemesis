@@ -98,62 +98,6 @@ namespace Xamarin.WebTests
 				response.Close ();
 			}
 		}
-
-		static void GetPuppySsl ()
-		{
-			var start = DateTime.Now;
-			int port = 0;
-
-			for (int i = 0; i < 1000; i++) {
-				var puppy = GetPuppy.Get (RequestFlags.UseSSL, TransferMode.Chunked);
-				if (puppy.RemotePort != port) {
-					Console.WriteLine ("NEW PORT: #{0}: {1}", i, puppy);
-					port = puppy.RemotePort;
-					continue;
-				}
-				if ((i % 10) == 0)
-					Console.WriteLine ("#{0}: {1}", i, puppy);
-			}
-
-			var end = DateTime.Now;
-			Console.WriteLine ("Total time: {0}", end - start);
-		}
-
-		static void ConcurrentRequests ()
-		{
-			ServicePointManager.DefaultConnectionLimit = 5;
-			ConcurrentRequests (10);
-			Thread.Sleep (25000);
-		}
-
-		static void ConcurrentRequests (int count)
-		{
-			for (int i = 0; i < count; i++) {
-				var url = string.Format ("http://www.google.com/#q={0}/", i);
-				var request = HttpWebRequest.Create (url) as HttpWebRequest;
-				var ares = request.BeginGetResponse (ar => {
-					Thread.Sleep (5000);
-					var response = request.EndGetResponse (ar) as HttpWebResponse;
-					Console.WriteLine ("ARES: {0} {1}", i, response);
-					Console.WriteLine (response.StatusCode);
-					response.Close ();
-				}, null);
-				Console.WriteLine ("TEST: {0} {1}", i, ares.IsCompleted);
-			}
-		}
-
-		static void WildcardRun (string rootDomain)
-		{
-			for (int i = 0; i < 1000; i++) {
-				var url = string.Format ("http://{0}.{1}/", i, rootDomain);
-				var request = HttpWebRequest.Create (url) as HttpWebRequest;
-				var response = request.GetResponse () as HttpWebResponse;
-				Console.WriteLine ("TEST: {0} {1}", i, response.StatusCode);
-				using (var stream = new StreamReader (response.GetResponseStream ())) {
-					stream.ReadToEnd ();
-				}
-			}
-		}
 	}
 }
 
