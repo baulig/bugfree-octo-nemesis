@@ -36,17 +36,31 @@ namespace Xamarin.WebTests.Server
 	using Client;
 	using Framework;
 
-	public class SimplePostHandler : Handler
+	public class PostHandler : Handler
 	{
-		public TransferMode Mode {
-			get;
-			private set;
-		}
-
-		bool haveBody;
+		string body;
 		int? readChunkSize;
 		int? readChunkMinDelay, readChunkMaxDelay;
 		bool? allowWriteBuffering;
+		TransferMode mode = TransferMode.Default;
+
+		public TransferMode Mode {
+			get { return mode; }
+			set {
+				WantToModify ();
+				mode = value;
+			}
+		}
+
+		public string Body {
+			get {
+				return body;
+			}
+			set {
+				WantToModify ();
+				body = value;
+			}
+		}
 
 		public int? ReadChunkSize {
 			get {
@@ -88,7 +102,7 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		public SimplePostHandler (Listener listener, TransferMode mode)
+		public PostHandler (Listener listener)
 			: base (listener)
 		{
 		}
@@ -114,7 +128,7 @@ namespace Xamarin.WebTests.Server
 
 			switch (Mode) {
 			case TransferMode.Default:
-				if (haveBody) {
+				if (Body != null) {
 					if (!haveContentLength) {
 						WriteError (connection, "Missing Content-Length");
 						return false;
@@ -231,11 +245,11 @@ namespace Xamarin.WebTests.Server
 			return body.ToString ();
 		}
 
-		public HttpWebRequest CreateRequest (string body)
+		protected override void CreateRequest (HttpWebRequest request)
 		{
-			var request = CreateRequest ();
+			base.CreateRequest (request);
 
-			if (body != null)
+			if (Body != null)
 				request.ContentType = "text/plain";
 			request.Method = "POST";
 
@@ -253,16 +267,12 @@ namespace Xamarin.WebTests.Server
 				break;
 			}
 
-			haveBody = body != null;
-
-			if (body != null) {
+			if (Body != null) {
 				using (var writer = new StreamWriter (request.GetRequestStream ())) {
-					if (!string.IsNullOrEmpty (body))
-						writer.Write (body);
+					if (!string.IsNullOrEmpty (Body))
+						writer.Write (Body);
 				}
 			}
-
-			return request;
 		}
 	}
 }

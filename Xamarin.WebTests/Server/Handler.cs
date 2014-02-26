@@ -43,6 +43,10 @@ namespace Xamarin.WebTests.Server
 			private set;
 		}
 
+		public string Description {
+			get; set;
+		}
+
 		public Task<bool> Task {
 			get { return tcs.Task; }
 		}
@@ -76,6 +80,8 @@ namespace Xamarin.WebTests.Server
 
 		protected void WriteSimpleResponse (Connection connection, int status, string message, string body)
 		{
+			Console.WriteLine ("RESPONSE: {0} {1} {2}", status, message, body);
+
 			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0} {1}", status, message);
 			connection.ResponseWriter.WriteLine ("Content-Type: text/plain");
 			if (body != null) {
@@ -103,7 +109,7 @@ namespace Xamarin.WebTests.Server
 
 		protected abstract bool DoHandleRequest (Connection connection);
 
-		protected HttpWebRequest CreateRequest ()
+		public HttpWebRequest CreateRequest ()
 		{
 			lock (this) {
 				if (hasRequest)
@@ -111,7 +117,13 @@ namespace Xamarin.WebTests.Server
 				hasRequest = true;
 			}
 
-			return (HttpWebRequest)HttpWebRequest.Create (Uri);
+			var request = (HttpWebRequest)HttpWebRequest.Create (Uri);
+			CreateRequest (request);
+			return request;
+		}
+
+		protected virtual void CreateRequest (HttpWebRequest request)
+		{
 		}
 	}
 }

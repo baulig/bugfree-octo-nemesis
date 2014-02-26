@@ -26,6 +26,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
@@ -39,14 +40,17 @@ namespace Xamarin.WebTests
 	using Client;
 	using Server;
 
-	public static class MainClass
+	public class MainClass
 	{
+		Listener listener;
+
 		public static void Run ()
 		{
 			var setCtx = typeof(TestExecutionContext).GetMethod ("SetCurrentContext", BindingFlags.Static | BindingFlags.NonPublic);
 			setCtx.Invoke (null, new object[] { new TestExecutionContext () });
 
-			TestServer ();
+			var main = new MainClass ();
+			main.TestServer ();
 		}
 
 		static void RunTheTests ()
@@ -58,46 +62,32 @@ namespace Xamarin.WebTests
 			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Chunked));
 		}
 
-		static void TestServer ()
+		void TestServer ()
 		{
-			var listener = new Listener (9999);
+			listener = new Listener (9999);
 
-			TestPost (listener);
-			TestPost2 (listener);
-			TestPost3 (listener);
+			foreach (var test in GetPostTests ())
+				TestPost (test);
 		}
 
-		static void TestPost (Listener listener)
+		IEnumerable<PostHandler> GetPostTests ()
 		{
-			var post = new SimplePostHandler (listener, TransferMode.Default);
-
-			var postReq = post.CreateRequest (null);
-			Console.WriteLine ("TEST POST");
-			var postRes = (HttpWebResponse)postReq.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);
-			Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
+			yield return new PostHandler (listener) { Description = "No request stream" };
+			yield return new PostHandler (listener) { Description = "Empty request stream", Body = string.Empty };
+			yield return new PostHandler (listener) { Body = "Hello World!" };
 		}
 
-		static void TestPost2 (Listener listener)
+		void TestPost (PostHandler post)
 		{
-			var post = new SimplePostHandler (listener, TransferMode.Default);
+			var request = post.CreateRequest ();
+			var response = (HttpWebResponse)request.GetResponse ();
 
-			var postReq = post.CreateRequest ("Hello World!");
-			Console.WriteLine ("TEST POST");
-			var postRes = (HttpWebResponse)postReq.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);
-			Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
-		}
-
-		static void TestPost3 (Listener listener)
-		{
-			var post = new SimplePostHandler (listener, TransferMode.Default);
-
-			var postReq = post.CreateRequest (string.Empty);
-			Console.WriteLine ("TEST POST");
-			var postRes = (HttpWebResponse)postReq.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);
-			Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
+			try {
+				Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+				Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
+			} finally {
+				response.Close ();
+			}
 		}
 
 		static void TestDelete (Listener listener)
