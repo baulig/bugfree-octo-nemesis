@@ -38,10 +38,14 @@ namespace Xamarin.WebTests.Server
 
 	public class DeleteHandler : Handler
 	{
-		bool hasBody;
+		string body;
 
-		public bool HasBody {
-			get { return hasBody; }
+		public string Body {
+			get { return body; }
+			set {
+				WantToModify ();
+				body = value;
+			}
 		}
 
 		public DeleteHandler (Listener listener)
@@ -66,7 +70,7 @@ namespace Xamarin.WebTests.Server
 		bool CheckRequest (Connection connection)
 		{
 			string value;
-			if (HasBody) {
+			if (Body != null) {
 				if (!connection.Headers.TryGetValue ("Content-Length", out value)) {
 					WriteError (connection, "Missing Content-Length");
 					return false;
@@ -102,20 +106,17 @@ namespace Xamarin.WebTests.Server
 			return true;
 		}
 
-		public HttpWebRequest CreateRequest (string body = null)
+		protected override void CreateRequest (HttpWebRequest request)
 		{
-			var request = CreateRequest ();
+			base.CreateRequest (request);
 			request.Method = "DELETE";
 
-			hasBody = body != null;
-
-			if (body != null) {
+			if (Body != null) {
 				using (var writer = new StreamWriter (request.GetRequestStream ())) {
-					writer.Write (body);
+					if (!string.IsNullOrEmpty (Body))
+						writer.Write (Body);
 				}
 			}
-
-			return request;
 		}
 	}
 }

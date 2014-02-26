@@ -68,6 +68,8 @@ namespace Xamarin.WebTests
 
 			foreach (var test in GetPostTests ())
 				TestPost (test);
+			foreach (var test in GetDeleteTests ())
+				TestPost (test);
 		}
 
 		IEnumerable<PostHandler> GetPostTests ()
@@ -77,33 +79,24 @@ namespace Xamarin.WebTests
 			yield return new PostHandler (listener) { Body = "Hello World!" };
 		}
 
-		void TestPost (PostHandler post)
+		IEnumerable<DeleteHandler> GetDeleteTests ()
 		{
-			var request = post.CreateRequest ();
+			yield return new DeleteHandler (listener);
+			yield return new DeleteHandler (listener) { Description = "DELETE with empty request stream", Body = string.Empty };
+			yield return new DeleteHandler (listener) { Description = "DELETE with request body", Body = "I have a body!" };
+		}
+
+		void TestPost (Handler handler)
+		{
+			var request = handler.CreateRequest ();
 			var response = (HttpWebResponse)request.GetResponse ();
 
 			try {
 				Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
-				Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
+				Console.WriteLine ("TEST POST DONE: {0} {1}", handler.Task.IsCompleted, handler.Task.IsFaulted);
 			} finally {
 				response.Close ();
 			}
-		}
-
-		static void TestDelete (Listener listener)
-		{
-			var delete = new DeleteHandler (listener);
-			var request = delete.CreateRequest ("I have a body!");
-			var response = (HttpWebResponse)request.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0} {1}", response.StatusCode, delete.Task.Result);
-		}
-
-		static void TestDelete2 (Listener listener)
-		{
-			var delete = new DeleteHandler (listener);
-			var request = delete.CreateRequest ();
-			var response = (HttpWebResponse)request.GetResponse ();
-			Console.WriteLine ("GOT RESPONSE: {0} {1}", response.StatusCode, delete.Task.Result);
 		}
 
 		static void GetPuppySsl ()
