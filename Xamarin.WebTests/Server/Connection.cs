@@ -89,14 +89,12 @@ namespace Xamarin.WebTests.Server
 			RequestUri = new Uri (server.Uri, Path);
 			var proto = fields [2];
 
-			Console.WriteLine ("HEADER: {0} {1} {2}", Method, Path, proto);
 			if (!proto.Equals ("HTTP/1.1"))
 				throw new InvalidOperationException ();
 
 			while ((line = reader.ReadLine ()) != null) {
 				if (string.IsNullOrEmpty (line))
 					break;
-				Console.WriteLine ("GOT LINE: {0}", line);
 				var pos = line.IndexOf (':');
 				if (pos < 0)
 					throw new InvalidOperationException ();
@@ -107,8 +105,6 @@ namespace Xamarin.WebTests.Server
 
 				Console.WriteLine ("HEADER: |{0}|{1}|", headerName, headerValue);
 			}
-
-			Console.WriteLine ("DONE READING HEADERS");
 		}
 
 		public void Close ()

@@ -43,6 +43,7 @@ namespace Xamarin.WebTests.Server
 			private set;
 		}
 
+		bool haveBody;
 		int? readChunkSize;
 		int? readChunkMinDelay, readChunkMaxDelay;
 		bool? allowWriteBuffering;
@@ -108,18 +109,34 @@ namespace Xamarin.WebTests.Server
 
 		bool CheckTransferMode (Connection connection)
 		{
+			var haveContentLength = connection.Headers.ContainsKey ("Content-Length");
+			var haveTransferEncoding = connection.Headers.ContainsKey ("Transfer-Encoding");
+
 			switch (Mode) {
 			case TransferMode.Default:
-				Console.WriteLine ("DEFAULT: {0}", connection.Headers.ContainsKey ("Content-Length"));
-				return ReadStaticBody (connection);
+				if (haveBody) {
+					if (!haveContentLength) {
+						WriteError (connection, "Missing Content-Length");
+						return false;
+					}
+
+					return ReadStaticBody (connection);
+				} else {
+					if (haveContentLength) {
+						WriteError (connection, "Content-Length header not allowed");
+						return false;
+					}
+
+					return true;
+				}
 
 			case TransferMode.ContentLength:
-				if (!connection.Headers.ContainsKey ("Content-Length")) {
+				if (!haveContentLength) {
 					WriteError (connection, "Missing Content-Length");
 					return false;
 				}
 
-				if (connection.Headers.ContainsKey ("Transfer-Encoding")) {
+				if (haveTransferEncoding) {
 					WriteError (connection, "Transfer-Encoding header not allowed");
 					return false;
 				}
@@ -127,12 +144,12 @@ namespace Xamarin.WebTests.Server
 				return ReadStaticBody (connection);
 
 			case TransferMode.Chunked:
-				if (connection.Headers.ContainsKey ("Content-Length")) {
+				if (haveContentLength) {
 					WriteError (connection, "Content-Length header not allowed");
 					return false;
 				}
 
-				if (!connection.Headers.ContainsKey ("Transfer-Encoding")) {
+				if (!haveTransferEncoding) {
 					WriteError (connection, "Missing Transfer-Encoding header");
 					return false;
 				}
@@ -236,9 +253,12 @@ namespace Xamarin.WebTests.Server
 				break;
 			}
 
+			haveBody = body != null;
+
 			if (body != null) {
 				using (var writer = new StreamWriter (request.GetRequestStream ())) {
-					writer.Write (body);
+					if (!string.IsNullOrEmpty (body))
+						writer.Write (body);
 				}
 			}
 

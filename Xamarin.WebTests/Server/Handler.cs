@@ -64,30 +64,6 @@ namespace Xamarin.WebTests.Server
 			Uri = Listener.RegisterHandler (this);
 		}
 
-		protected IDictionary<string,string> ParseQuery (Connection connection)
-		{
-			var dict = new Dictionary<string,string> ();
-			var query = connection.RequestUri.Query;
-			if (string.IsNullOrEmpty (query))
-				return dict;
-			if (query [0] != '?')
-				throw new InvalidOperationException ();
-
-			query = query.Substring (1);
-			var parts = query.Split (new char[] { '&' }, StringSplitOptions.None);
-			Console.WriteLine ("QUERY PARTS: {0}", parts.Length);
-
-			foreach (var part in parts) {
-				int pos = part.IndexOf ('=');
-				var key = part.Substring (0, pos);
-				var value = part.Substring (pos + 1);
-				dict.Add (key, value);
-				Console.WriteLine ("QUERY: {0} {1}", key, value);
-			}
-
-			return dict;
-		}
-
 		protected void WriteError (Connection connection, string message, params object[] args)
 		{
 			WriteSimpleResponse (connection, 500, "ERROR", string.Format (message, args));
@@ -100,8 +76,6 @@ namespace Xamarin.WebTests.Server
 
 		protected void WriteSimpleResponse (Connection connection, int status, string message, string body)
 		{
-			Console.WriteLine ("RESPONSE: {0} {1} {2}", status, message, body);
-
 			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0} {1}", status, message);
 			connection.ResponseWriter.WriteLine ("Content-Type: text/plain");
 			if (body != null) {

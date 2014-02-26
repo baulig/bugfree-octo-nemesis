@@ -63,6 +63,8 @@ namespace Xamarin.WebTests
 			var listener = new Listener (9999);
 
 			TestPost (listener);
+			TestPost2 (listener);
+			TestPost3 (listener);
 		}
 
 		static void TestPost (Listener listener)
@@ -70,6 +72,28 @@ namespace Xamarin.WebTests
 			var post = new SimplePostHandler (listener, TransferMode.Default);
 
 			var postReq = post.CreateRequest (null);
+			Console.WriteLine ("TEST POST");
+			var postRes = (HttpWebResponse)postReq.GetResponse ();
+			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);
+			Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
+		}
+
+		static void TestPost2 (Listener listener)
+		{
+			var post = new SimplePostHandler (listener, TransferMode.Default);
+
+			var postReq = post.CreateRequest ("Hello World!");
+			Console.WriteLine ("TEST POST");
+			var postRes = (HttpWebResponse)postReq.GetResponse ();
+			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);
+			Console.WriteLine ("TEST POST DONE: {0} {1}", post.Task.IsCompleted, post.Task.IsFaulted);
+		}
+
+		static void TestPost3 (Listener listener)
+		{
+			var post = new SimplePostHandler (listener, TransferMode.Default);
+
+			var postReq = post.CreateRequest (string.Empty);
 			Console.WriteLine ("TEST POST");
 			var postRes = (HttpWebResponse)postReq.GetResponse ();
 			Console.WriteLine ("GOT RESPONSE: {0}", postRes.StatusCode);

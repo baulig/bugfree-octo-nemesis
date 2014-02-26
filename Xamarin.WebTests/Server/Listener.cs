@@ -63,7 +63,6 @@ namespace Xamarin.WebTests.Server
 		void AcceptSocketCB (IAsyncResult ar)
 		{
 			var socket = listener.EndAcceptSocket (ar);
-			Console.WriteLine ("GOT SOCKET: {0}", socket);
 
 			HandleConnection (socket);
 			socket.Close ();
@@ -75,8 +74,6 @@ namespace Xamarin.WebTests.Server
 		{
 			var connection = new Connection (this, socket);
 			connection.ReadHeaders ();
-
-			Console.WriteLine ("PATH: {0} - {1} {2}", connection.RequestUri, connection.RequestUri.AbsolutePath, connection.RequestUri.Query);
 
 			var path = connection.RequestUri.AbsolutePath;
 			var handler = handlers [path];
