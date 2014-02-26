@@ -59,6 +59,10 @@ namespace Xamarin.WebTests.Server
 				private set;
 			}
 
+			public bool? AllowWriteStreamBuffering {
+				get; set;
+			}
+
 			static TransferMode ParseMode (IDictionary<string,string> query)
 			{
 				if (!query.ContainsKey ("mode"))
@@ -140,6 +144,9 @@ namespace Xamarin.WebTests.Server
 		{
 			switch (query.Mode) {
 			case TransferMode.Default:
+				Console.WriteLine ("DEFAULT: {0}", connection.Headers.ContainsKey ("Content-Length"));
+				return ReadStaticBody (connection, query);
+
 			case TransferMode.ContentLength:
 				if (!connection.Headers.ContainsKey ("Content-Length")) {
 					WriteError (connection, "Missing Content-Length");
@@ -187,7 +194,7 @@ namespace Xamarin.WebTests.Server
 
 			string type;
 			if (connection.Headers.TryGetValue ("Content-Type", out type))
-				Console.WriteLine ("CONTENT-TYPE: {0} {1}", type);
+				Console.WriteLine ("CONTENT-TYPE: {0}", type);
 
 			var chunkSize = query.ReadChunkSize ?? 4096;
 			var minDelay = query.ReadChunkMinDelay ?? 0;
@@ -267,20 +274,28 @@ namespace Xamarin.WebTests.Server
 		{
 			var request = (HttpWebRequest)HttpWebRequest.Create (GetUri (query));
 
-			request.ContentType = "text/plain";
+			if (body != null)
+				request.ContentType = "text/plain";
 			request.Method = "POST";
+
+			if (query.AllowWriteStreamBuffering != null)
+				request.AllowWriteStreamBuffering = query.AllowWriteStreamBuffering.Value;
 
 			switch (query.Mode) {
 			case TransferMode.Chunked:
 				request.SendChunked = true;
 				break;
 			case TransferMode.ContentLength:
+				if (body == null)
+					throw new InvalidOperationException ();
 				request.ContentLength = body.Length;
 				break;
 			}
 
-			using (var writer = new StreamWriter (request.GetRequestStream ())) {
-				writer.Write (body);
+			if (body != null) {
+				using (var writer = new StreamWriter (request.GetRequestStream ())) {
+					writer.Write (body);
+				}
 			}
 
 			return request;
