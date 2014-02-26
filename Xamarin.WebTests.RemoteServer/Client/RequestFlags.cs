@@ -1,10 +1,10 @@
-﻿//
-// SimpleTest.cs
+//
+// RequestFlags.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,32 +25,15 @@
 // THE SOFTWARE.
 using System;
 
-namespace Xamarin.WebTests.Framework
+namespace Xamarin.WebTests.RemoteServer.Client
 {
-	using Client;
-
-	public class SimpleTest
+	[Flags]
+	public enum RequestFlags
 	{
-		public RequestFlags Flags {
-			get;
-			private set;
-		}
-
-		public TransferMode TransferMode {
-			get;
-			private set;
-		}
-
-		public SimpleTest (RequestFlags flags, TransferMode mode)
-		{
-			Flags = flags;
-			TransferMode = mode;
-		}
-
-		public override string ToString ()
-		{
-			return string.Format ("[SimpleTest: Flags={0}, TransferMode={1}]", Flags, TransferMode);
-		}
+		None		= 0,
+		UseSSL		= 1,
+		UseProxy	= 2,
+		AutoRedirect	= 4
 	}
 }
 

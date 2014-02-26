@@ -28,8 +28,10 @@ using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace Xamarin.WebTests.Client
+namespace Xamarin.WebTests.RemoteServer.Client
 {
+	using Framework;
+
 	public abstract class AbstractPuppy
 	{
 		public Uri Uri {

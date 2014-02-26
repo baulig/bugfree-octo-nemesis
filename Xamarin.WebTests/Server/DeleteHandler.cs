@@ -33,7 +33,6 @@ using System.Collections.Generic;
 
 namespace Xamarin.WebTests.Server
 {
-	using Client;
 	using Framework;
 
 	public class DeleteHandler : Handler

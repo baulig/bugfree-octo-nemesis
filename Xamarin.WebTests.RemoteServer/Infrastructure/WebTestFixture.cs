@@ -27,8 +27,9 @@ using System;
 using System.Net;
 using SD = System.Diagnostics;
 
-namespace Xamarin.WebTests.Framework
+namespace Xamarin.WebTests.RemoteServer.Infrastructure
 {
+	using Framework;
 	using Client;
 
 	public abstract class WebTestFixture

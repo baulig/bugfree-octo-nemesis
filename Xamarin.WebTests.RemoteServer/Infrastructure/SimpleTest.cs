@@ -1,5 +1,5 @@
 ﻿//
-// TransferMode.cs
+// SimpleTest.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -25,13 +25,33 @@
 // THE SOFTWARE.
 using System;
 
-namespace Xamarin.WebTests.Client
+namespace Xamarin.WebTests.RemoteServer.Infrastructure
 {
-	public enum TransferMode
+	using Framework;
+	using Client;
+
+	public class SimpleTest
 	{
-		Default,
-		Chunked,
-		ContentLength
+		public RequestFlags Flags {
+			get;
+			private set;
+		}
+
+		public TransferMode TransferMode {
+			get;
+			private set;
+		}
+
+		public SimpleTest (RequestFlags flags, TransferMode mode)
+		{
+			Flags = flags;
+			TransferMode = mode;
+		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[SimpleTest: Flags={0}, TransferMode={1}]", Flags, TransferMode);
+		}
 	}
 }
 

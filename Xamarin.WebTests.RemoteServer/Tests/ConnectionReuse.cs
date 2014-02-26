@@ -32,8 +32,9 @@ using System.Collections.Generic;
 using SD = System.Diagnostics;
 using NUnit.Framework;
 
-namespace Xamarin.WebTests.Tests
+namespace Xamarin.WebTests.RemoteServer.Tests
 {
+	using Infrastructure;
 	using Framework;
 	using Client;
 

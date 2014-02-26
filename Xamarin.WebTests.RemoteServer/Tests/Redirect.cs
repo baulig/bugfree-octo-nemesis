@@ -28,8 +28,9 @@ using System.Net;
 using System.Collections;
 using NUnit.Framework;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.RemoteServer.Tests
 {
+	using Infrastructure;
 	using Framework;
 	using Client;
 

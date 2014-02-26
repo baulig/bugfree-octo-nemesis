@@ -1,5 +1,5 @@
-//
-// RequestFlags.cs
+﻿//
+// GetPuppy.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
@@ -24,16 +24,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
+using System.Net;
+using System.Text.RegularExpressions;
 
-namespace Xamarin.WebTests.Client
+namespace Xamarin.WebTests.RemoteServer.Client
 {
-	[Flags]
-	public enum RequestFlags
+	using Infrastructure;
+	using Framework;
+
+	public sealed class GetPuppy : AbstractPuppy
 	{
-		None		= 0,
-		UseSSL		= 1,
-		UseProxy	= 2,
-		AutoRedirect	= 4
+		GetPuppy ()
+		{
+		}
+
+		public static GetPuppy Read (HttpWebResponse response)
+		{
+			var puppy = new GetPuppy ();
+			puppy.ReadResponse (response);
+			return puppy;
+		}
+
+		public static GetPuppy Get (RequestFlags flags, TransferMode mode)
+		{
+			var request = CreateRequest (flags, mode);
+			var response = (HttpWebResponse)request.GetResponse ();
+			return Read (response);
+		}
+
+		public static HttpWebRequest CreateRequest (RequestFlags flags, TransferMode mode)
+		{
+			return WebTestFixture.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
+		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[GetPuppy: Method={0}, Path={1}, RemoteAddress={2}, RemotePort={3}]", Method, Path, RemoteAddress, RemotePort);
+		}
 	}
 }
-

@@ -27,8 +27,9 @@ using System;
 using System.IO;
 using System.Net;
 
-namespace Xamarin.WebTests.Client
+namespace Xamarin.WebTests.RemoteServer.Client
 {
+	using Infrastructure;
 	using Framework;
 
 	public sealed class PostPuppy : AbstractPuppy

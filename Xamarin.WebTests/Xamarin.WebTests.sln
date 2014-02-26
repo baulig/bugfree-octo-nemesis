@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.WebTests", "Xamarin.WebTests.csproj", "{E93E8622-665B-44D6-B36A-89C93B5B3532}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.WebTests.RemoteServer", "..\Xamarin.WebTests.RemoteServer\Xamarin.WebTests.RemoteServer.csproj", "{BF486D77-DB4B-4AFD-B921-7629F74322A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -10,6 +12,12 @@ Global
 		NUnit|x86 = NUnit|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF486D77-DB4B-4AFD-B921-7629F74322A8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BF486D77-DB4B-4AFD-B921-7629F74322A8}.Debug|x86.Build.0 = Debug|Any CPU
+		{BF486D77-DB4B-4AFD-B921-7629F74322A8}.NUnit|x86.ActiveCfg = Debug|Any CPU
+		{BF486D77-DB4B-4AFD-B921-7629F74322A8}.NUnit|x86.Build.0 = Debug|Any CPU
+		{BF486D77-DB4B-4AFD-B921-7629F74322A8}.Release|x86.ActiveCfg = Release|Any CPU
+		{BF486D77-DB4B-4AFD-B921-7629F74322A8}.Release|x86.Build.0 = Release|Any CPU
 		{E93E8622-665B-44D6-B36A-89C93B5B3532}.Debug|x86.ActiveCfg = Debug|x86
 		{E93E8622-665B-44D6-B36A-89C93B5B3532}.Debug|x86.Build.0 = Debug|x86
 		{E93E8622-665B-44D6-B36A-89C93B5B3532}.NUnit|x86.ActiveCfg = NUnit|x86
@@ -19,5 +27,9 @@ Global
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Xamarin.WebTests.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = Flat
+		$1.ResourceNamePolicy = FileFormatDefault
 	EndGlobalSection
 EndGlobal

@@ -1,10 +1,10 @@
 ﻿//
-// GetPuppy.cs
+// AssemblyInfo.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,43 +23,25 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using System.IO;
-using System.Net;
-using System.Text.RegularExpressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
-namespace Xamarin.WebTests.Client
-{
-	using Framework;
+// Information about this assembly is defined by the following attributes.
+// Change them to the values specific to your project.
+[assembly: AssemblyTitle ("Xamarin.WebTests.RemoteServer")]
+[assembly: AssemblyDescription ("")]
+[assembly: AssemblyConfiguration ("")]
+[assembly: AssemblyCompany ("Xamarin Inc. (http://www.xamarin.com)")]
+[assembly: AssemblyProduct ("")]
+[assembly: AssemblyCopyright ("Xamarin Inc. (http://www.xamarin.com)")]
+[assembly: AssemblyTrademark ("")]
+[assembly: AssemblyCulture ("")]
+// The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
+// The form "{Major}.{Minor}.*" will automatically update the build and revision,
+// and "{Major}.{Minor}.{Build}.*" will update just the revision.
+[assembly: AssemblyVersion ("1.0.*")]
+// The following attributes are used to specify the signing key for the assembly,
+// if desired. See the Mono documentation for more information about signing.
+//[assembly: AssemblyDelaySign(false)]
+//[assembly: AssemblyKeyFile("")]
 
-	public sealed class GetPuppy : AbstractPuppy
-	{
-		GetPuppy ()
-		{
-		}
-
-		public static GetPuppy Read (HttpWebResponse response)
-		{
-			var puppy = new GetPuppy ();
-			puppy.ReadResponse (response);
-			return puppy;
-		}
-
-		public static GetPuppy Get (RequestFlags flags, TransferMode mode)
-		{
-			var request = CreateRequest (flags, mode);
-			var response = (HttpWebResponse)request.GetResponse ();
-			return Read (response);
-		}
-
-		public static HttpWebRequest CreateRequest (RequestFlags flags, TransferMode mode)
-		{
-			return WebTestFixture.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
-		}
-
-		public override string ToString ()
-		{
-			return string.Format ("[GetPuppy: Method={0}, Path={1}, RemoteAddress={2}, RemotePort={3}]", Method, Path, RemoteAddress, RemotePort);
-		}
-	}
-}

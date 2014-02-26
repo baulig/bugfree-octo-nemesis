@@ -45,7 +45,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Configuration" />
     <Reference Include="nunitlite">
       <HintPath>packages\NUnitLite.1.0.0\lib\net45\nunitlite.dll</HintPath>
     </Reference>
@@ -54,35 +53,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainClass.cs" />
-    <Compile Include="Client\GetPuppy.cs" />
-    <Compile Include="Client\RequestFlags.cs" />
-    <Compile Include="Client\TransferMode.cs" />
-    <Compile Include="Framework\WebTestFixture.cs" />
-    <Compile Include="Framework\Settings.cs" />
-    <Compile Include="Framework\SimpleTest.cs" />
-    <Compile Include="Tests\Redirect.cs" />
-    <Compile Include="Tests\ConnectionReuse.cs" />
-    <Compile Include="Tests\Simple.cs" />
-    <Compile Include="Client\PostPuppy.cs" />
-    <Compile Include="Client\AbstractPuppy.cs" />
     <Compile Include="Server\Listener.cs" />
     <Compile Include="Server\Connection.cs" />
     <Compile Include="Server\Handler.cs" />
     <Compile Include="Server\HelloWorldHandler.cs" />
     <Compile Include="Server\DeleteHandler.cs" />
     <Compile Include="Server\PostHandler.cs" />
+    <Compile Include="Framework\TransferMode.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="..\app.config">
-      <Link>app.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Client\" />
-    <Folder Include="Tests\" />
     <Folder Include="Framework\" />
     <Folder Include="Server\" />
   </ItemGroup>

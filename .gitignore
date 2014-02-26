@@ -3,3 +3,5 @@
 /app.config
 /TestResult.*
 *.userprefs
+bin/
+obj/

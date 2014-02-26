@@ -37,7 +37,6 @@ using NUnit.Framework.Internal;
 namespace Xamarin.WebTests
 {
 	using Framework;
-	using Client;
 	using Server;
 
 	public class MainClass
@@ -51,15 +50,6 @@ namespace Xamarin.WebTests
 
 			var main = new MainClass ();
 			main.TestServer ();
-		}
-
-		static void RunTheTests ()
-		{
-			var test = new Simple ();
-			test.Post_EmptyRequestStream ();
-			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Default));
-			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.ContentLength));
-			test.TestPost (new SimpleTest (RequestFlags.None, TransferMode.Chunked));
 		}
 
 		void TestServer ()

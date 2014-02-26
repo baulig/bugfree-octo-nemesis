@@ -1,10 +1,10 @@
-//
-// Settings.cs
+﻿//
+// TransferMode.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,47 +24,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Configuration;
 
 namespace Xamarin.WebTests.Framework
 {
-	public static class Settings
+	public enum TransferMode
 	{
-		static readonly string webRoot;
-
-		public static string WebRoot {
-			get {
-				if (string.IsNullOrEmpty (webRoot))
-					throw new InvalidOperationException ();
-				return webRoot;
-			}
-		}
-
-		public static readonly string WebHost;
-		public static readonly string WebPrefix;
-		public static readonly string SquidAddress;
-		public static readonly string SquidAddressSSL;
-		public static readonly string SquidUser;
-		public static readonly string SquidPass;
-
-		static Settings ()
-		{
-			webRoot = GetOption ("web_root", true);
-			WebHost = GetOption ("web_host");
-			WebPrefix = GetOption ("web_prefix");
-			SquidAddress = GetOption ("squid_address");
-			SquidAddressSSL = GetOption ("squid_address_ssl");
-			SquidUser = GetOption ("squid_user", true);
-			SquidPass = GetOption ("squid_pass", true);
-		}
-
-		static string GetOption (string name, bool optional = false)
-		{
-			var value = ConfigurationManager.AppSettings [name];
-			if (!optional && value == null)
-				throw new InvalidOperationException ();
-			return value;
-		}
+		Default,
+		Chunked,
+		ContentLength
 	}
 }
 
