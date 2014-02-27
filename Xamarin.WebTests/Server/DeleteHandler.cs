@@ -100,9 +100,9 @@ namespace Xamarin.WebTests.Server
 			return true;
 		}
 
-		protected override void CreateRequest (HttpWebRequest request)
+		public override HttpWebRequest CreateRequest (Uri uri)
 		{
-			base.CreateRequest (request);
+			var request = base.CreateRequest (uri);
 			request.Method = "DELETE";
 
 			if (Body != null) {
@@ -111,6 +111,8 @@ namespace Xamarin.WebTests.Server
 						writer.Write (Body);
 				}
 			}
+
+			return request;
 		}
 	}
 }

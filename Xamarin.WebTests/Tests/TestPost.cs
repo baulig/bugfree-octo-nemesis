@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
 using System.Net;
 using System.Collections;
 using System.Collections.Generic;
@@ -50,23 +51,39 @@ namespace Xamarin.WebTests.Tests
 			listener.Stop ();
 		}
 
-		IEnumerable<Handler> GetPostTests ()
+		public IEnumerable<PostHandler> GetPostTests ()
 		{
 			yield return new PostHandler () { Description = "No request stream" };
 			yield return new PostHandler () { Description = "Empty request stream", Body = string.Empty };
 			yield return new PostHandler () { Body = "Hello World!" };
 		}
 
-		IEnumerable<Handler> GetDeleteTests ()
+		public IEnumerable<Handler> GetDeleteTests ()
 		{
 			yield return new DeleteHandler ();
 			yield return new DeleteHandler () { Description = "DELETE with empty request stream", Body = string.Empty };
 			yield return new DeleteHandler () { Description = "DELETE with request body", Body = "I have a body!" };
 		}
 
+		public IEnumerable<Handler> GetRedirectTests ()
+		{
+			foreach (var code in new [] { HttpStatusCode.Moved, HttpStatusCode.Found, HttpStatusCode.TemporaryRedirect }) {
+				foreach (var post in GetPostTests ()) {
+					var isWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
+					var hasBody = post.Body != null;
+
+					if ((hasBody || !isWindows) && (code == HttpStatusCode.MovedPermanently || code == HttpStatusCode.Found))
+						post.RedirectedAsGet = true;
+					post.Description = string.Format ("{0}: {1}", code, post.Description);
+					yield return new RedirectHandler (post, code) { Description = post.Description };
+				}
+			}
+		}
+
 		[Category ("Work")]
 		[TestCaseSource ("GetPostTests")]
 		[TestCaseSource ("GetDeleteTests")]
+		[TestCaseSource ("GetRedirectTests")]
 		public void Run (Handler handler)
 		{
 			var request = handler.CreateRequest (listener);

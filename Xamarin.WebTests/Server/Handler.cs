@@ -80,6 +80,15 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
+		protected void WriteRedirect (Connection connection, int code, Uri uri)
+		{
+			Console.WriteLine ("REDIRECT: {0} {1}", code, uri);
+
+			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0}", code);
+			connection.ResponseWriter.WriteLine ("Location: {0}", uri);
+			connection.ResponseWriter.WriteLine ();
+		}
+
 		public void HandleRequest (Connection connection)
 		{
 			try {
@@ -96,23 +105,26 @@ namespace Xamarin.WebTests.Server
 
 		protected abstract bool DoHandleRequest (Connection connection);
 
-		public HttpWebRequest CreateRequest (Listener listener)
+		internal Uri RegisterRequest (Listener listener)
 		{
 			lock (this) {
 				if (hasRequest)
 					throw new InvalidOperationException ();
 				hasRequest = true;
+
+				return listener.RegisterHandler (this);
 			}
-
-			var uri = listener.RegisterHandler (this);
-
-			var request = (HttpWebRequest)HttpWebRequest.Create (uri);
-			CreateRequest (request);
-			return request;
 		}
 
-		protected virtual void CreateRequest (HttpWebRequest request)
+		public virtual HttpWebRequest CreateRequest (Uri uri)
 		{
+			return (HttpWebRequest)HttpWebRequest.Create (uri);
+		}
+
+		public HttpWebRequest CreateRequest (Listener listener)
+		{
+			var uri = RegisterRequest (listener);
+			return CreateRequest (uri);
 		}
 
 		public override string ToString ()

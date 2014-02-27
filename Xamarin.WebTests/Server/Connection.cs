@@ -52,6 +52,10 @@ namespace Xamarin.WebTests.Server
 			headers = new Dictionary<string, string> ();
 		}
 
+		public Listener Server {
+			get { return server; }
+		}
+
 		public string Method {
 			get; private set;
 		}

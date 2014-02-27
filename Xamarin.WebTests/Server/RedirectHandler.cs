@@ -1,10 +1,10 @@
 ﻿//
-// MainClass.cs
+// RedirectHandler.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,40 +24,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.IO;
-using System.Text;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Reflection;
 using System.Net;
-using NUnitLite.Runner;
-using NUnit.Framework.Internal;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.Server
 {
-	using Framework;
-	using Server;
-	using Tests;
-
-	public class MainClass
+	public class RedirectHandler : Handler
 	{
-		public static void Run ()
-		{
-			var setCtx = typeof(TestExecutionContext).GetMethod ("SetCurrentContext", BindingFlags.Static | BindingFlags.NonPublic);
-			setCtx.Invoke (null, new object[] { new TestExecutionContext () });
-
-			var main = new MainClass ();
-			main.TestServer ();
+		public Handler Target {
+			get;
+			private set;
 		}
 
-		void TestServer ()
-		{
-			var test = new TestPost ();
-			test.Start ();
+		public HttpStatusCode Code {
+			get;
+			private set;
+		}
 
-			foreach (var redirect in test.GetRedirectTests ())
-				test.Run (redirect);
+		public RedirectHandler (Handler target, HttpStatusCode code)
+		{
+			Target = target;
+			Code = code;
+
+			if (!IsRedirectStatus (code))
+				throw new InvalidOperationException ();
+		}
+
+		static bool IsRedirectStatus (HttpStatusCode code)
+		{
+			var icode = (int)code;
+			return icode == 301 || icode == 302 || icode == 303 || icode == 307;
+		}
+
+		protected override bool DoHandleRequest (Connection connection)
+		{
+			var targetUri = Target.RegisterRequest (connection.Server);
+			WriteRedirect (connection, (int)Code, targetUri);
+			return true;
+		}
+
+		public override HttpWebRequest CreateRequest (Uri uri)
+		{
+			return Target.CreateRequest (uri);
 		}
 	}
 }

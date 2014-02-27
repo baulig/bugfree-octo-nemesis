@@ -41,6 +41,7 @@ namespace Xamarin.WebTests.Server
 		int? readChunkSize;
 		int? readChunkMinDelay, readChunkMaxDelay;
 		bool? allowWriteBuffering;
+		bool redirectedAsGet;
 		TransferMode mode = TransferMode.Default;
 
 		public TransferMode Mode {
@@ -101,11 +102,30 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
+		public bool RedirectedAsGet {
+			get {
+				return redirectedAsGet;
+			}
+			set {
+				WantToModify ();
+				redirectedAsGet = value;
+			}
+		}
+
 		protected override bool DoHandleRequest (Connection connection)
 		{
-			if (!connection.Method.Equals ("POST") && !connection.Method.Equals ("PUT")) {
-				WriteError (connection, "Wrong method: {0}", connection.Method);
-				return false;
+			Console.WriteLine ("HANDLE POST: {0} {1} {2} {3}", this, connection.Path, connection.Method, redirectedAsGet);
+
+			if (redirectedAsGet) {
+				if (!connection.Method.Equals ("GET")) {
+					WriteError (connection, "Wrong method: {0}", connection.Method);
+					return false;
+				}
+			} else {
+				if (!connection.Method.Equals ("POST") && !connection.Method.Equals ("PUT")) {
+					WriteError (connection, "Wrong method: {0}", connection.Method);
+					return false;
+				}
 			}
 
 			if (!CheckTransferMode (connection))
@@ -119,6 +139,20 @@ namespace Xamarin.WebTests.Server
 		{
 			var haveContentLength = connection.Headers.ContainsKey ("Content-Length");
 			var haveTransferEncoding = connection.Headers.ContainsKey ("Transfer-Encoding");
+
+			if (redirectedAsGet) {
+				if (haveContentLength) {
+					WriteError (connection, "Content-Length header not allowed");
+					return false;
+				}
+
+				if (haveTransferEncoding) {
+					WriteError (connection, "Transfer-Encoding header not allowed");
+					return false;
+				}
+
+				return true;
+			}
 
 			switch (Mode) {
 			case TransferMode.Default:
@@ -239,9 +273,9 @@ namespace Xamarin.WebTests.Server
 			return body.ToString ();
 		}
 
-		protected override void CreateRequest (HttpWebRequest request)
+		public override HttpWebRequest CreateRequest (Uri uri)
 		{
-			base.CreateRequest (request);
+			var request = base.CreateRequest (uri);
 
 			if (Body != null)
 				request.ContentType = "text/plain";
@@ -267,6 +301,8 @@ namespace Xamarin.WebTests.Server
 						writer.Write (Body);
 				}
 			}
+
+			return request;
 		}
 	}
 }
