@@ -47,11 +47,6 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		public DeleteHandler (Listener listener)
-			: base (listener)
-		{
-		}
-
 		protected override bool DoHandleRequest (Connection connection)
 		{
 			if (!connection.Method.Equals ("DELETE")) {

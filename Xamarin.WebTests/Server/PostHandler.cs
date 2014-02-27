@@ -101,11 +101,6 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		public PostHandler (Listener listener)
-			: base (listener)
-		{
-		}
-
 		protected override bool DoHandleRequest (Connection connection)
 		{
 			if (!connection.Method.Equals ("POST") && !connection.Method.Equals ("PUT")) {

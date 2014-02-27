@@ -29,11 +29,6 @@ namespace Xamarin.WebTests.Server
 {
 	public class HelloWorldHandler : Handler
 	{
-		public HelloWorldHandler (Listener listener)
-			: base (listener)
-		{
-		}
-
 		protected override bool DoHandleRequest (Connection connection)
 		{
 			if (!connection.Method.Equals ("GET")) {

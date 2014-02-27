@@ -34,7 +34,9 @@ namespace Xamarin.WebTests.Server
 {
 	public class Listener
 	{
+		bool abortRequested;
 		TcpListener listener;
+		TaskCompletionSource<bool> tcs;
 		Dictionary<string,Handler> handlers;
 		Uri uri;
 
@@ -46,7 +48,28 @@ namespace Xamarin.WebTests.Server
 			listener = new TcpListener (IPAddress.Loopback, port);
 			handlers = new Dictionary<string, Handler> ();
 			listener.Start ();
+
 			listener.BeginAcceptSocket (AcceptSocketCB, null);
+		}
+
+		public void Stop ()
+		{
+			Task<bool> task = null;
+			lock (this) {
+				if (abortRequested)
+					return;
+				abortRequested = true;
+				if (tcs != null)
+					task = tcs.Task;
+				listener.Stop ();
+			}
+
+			try {
+				if (task != null)
+					task.Wait ();
+			} catch {
+				;
+			}
 		}
 
 		public Uri RegisterHandler (Handler handler)
@@ -62,12 +85,35 @@ namespace Xamarin.WebTests.Server
 
 		void AcceptSocketCB (IAsyncResult ar)
 		{
-			var socket = listener.EndAcceptSocket (ar);
+			Socket socket;
+			try {
+				socket = listener.EndAcceptSocket (ar);
+			} catch {
+				if (abortRequested)
+					return;
+				throw;
+			}
 
-			HandleConnection (socket);
-			socket.Close ();
+			TaskCompletionSource<bool> t;
+			lock (this) {
+				if (abortRequested)
+					return;
+				t = tcs = new TaskCompletionSource<bool> ();
+			}
 
-			listener.BeginAcceptSocket (AcceptSocketCB, null);
+			try {
+				HandleConnection (socket);
+				socket.Close ();
+				t.SetResult (true);
+			} catch (Exception ex) {
+				t.SetException (ex);
+			} finally {
+				lock (this) {
+					tcs = null;
+					if (!abortRequested)
+						listener.BeginAcceptSocket (AcceptSocketCB, null);
+				}
+			}
 		}
 
 		void HandleConnection (Socket socket)

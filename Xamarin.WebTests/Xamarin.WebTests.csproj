@@ -60,6 +60,7 @@
     <Compile Include="Server\DeleteHandler.cs" />
     <Compile Include="Server\PostHandler.cs" />
     <Compile Include="Framework\TransferMode.cs" />
+    <Compile Include="Tests\TestPost.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -68,5 +69,6 @@
   <ItemGroup>
     <Folder Include="Framework\" />
     <Folder Include="Server\" />
+    <Folder Include="Tests\" />
   </ItemGroup>
 </Project>

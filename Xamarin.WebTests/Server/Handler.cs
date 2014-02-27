@@ -33,16 +33,6 @@ namespace Xamarin.WebTests.Server
 {
 	public abstract class Handler
 	{
-		public Listener Listener {
-			get;
-			private set;
-		}
-
-		public Uri Uri {
-			get;
-			private set;
-		}
-
 		public string Description {
 			get; set;
 		}
@@ -60,12 +50,9 @@ namespace Xamarin.WebTests.Server
 				throw new InvalidOperationException ();
 		}
 
-		protected Handler (Listener listener)
+		public Handler ()
 		{
-			Listener = listener;
-
 			tcs = new TaskCompletionSource<bool> ();
-			Uri = Listener.RegisterHandler (this);
 		}
 
 		protected void WriteError (Connection connection, string message, params object[] args)
@@ -96,12 +83,12 @@ namespace Xamarin.WebTests.Server
 		public void HandleRequest (Connection connection)
 		{
 			try {
-				Console.WriteLine ("HANDLE REQUEST: {0}", Uri);
+				Console.WriteLine ("HANDLE REQUEST: {0}", this);
 				var success = DoHandleRequest (connection);
-				Console.WriteLine ("HANDLE REQUEST DONE: {0} {1}", Uri, success);
+				Console.WriteLine ("HANDLE REQUEST DONE: {0} {1}", this, success);
 				tcs.SetResult (success);
 			} catch (Exception ex) {
-				Console.WriteLine ("HANDLE REQUEST EX: {0} {1}", Uri, ex);
+				Console.WriteLine ("HANDLE REQUEST EX: {0} {1}", this, ex);
 				WriteError (connection, "Caught unhandled exception", ex);
 				tcs.SetException (ex);
 			}
@@ -109,7 +96,7 @@ namespace Xamarin.WebTests.Server
 
 		protected abstract bool DoHandleRequest (Connection connection);
 
-		public HttpWebRequest CreateRequest ()
+		public HttpWebRequest CreateRequest (Listener listener)
 		{
 			lock (this) {
 				if (hasRequest)
@@ -117,13 +104,21 @@ namespace Xamarin.WebTests.Server
 				hasRequest = true;
 			}
 
-			var request = (HttpWebRequest)HttpWebRequest.Create (Uri);
+			var uri = listener.RegisterHandler (this);
+
+			var request = (HttpWebRequest)HttpWebRequest.Create (uri);
 			CreateRequest (request);
 			return request;
 		}
 
 		protected virtual void CreateRequest (HttpWebRequest request)
 		{
+		}
+
+		public override string ToString ()
+		{
+			var padding = string.IsNullOrEmpty (Description) ? string.Empty : ": ";
+			return string.Format ("[{0}{1}{2}]", GetType ().Name, padding, Description);
 		}
 	}
 }

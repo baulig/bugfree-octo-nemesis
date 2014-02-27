@@ -1,10 +1,10 @@
 ﻿//
-// MainClass.cs
+// TestPost.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,42 +24,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.IO;
-using System.Text;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Reflection;
 using System.Net;
-using NUnitLite.Runner;
-using NUnit.Framework.Internal;
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
 
-namespace Xamarin.WebTests
+namespace Xamarin.WebTests.Tests
 {
-	using Framework;
 	using Server;
 
-	public class MainClass
+	[TestFixture]
+	public class TestPost
 	{
 		Listener listener;
 
-		public static void Run ()
-		{
-			var setCtx = typeof(TestExecutionContext).GetMethod ("SetCurrentContext", BindingFlags.Static | BindingFlags.NonPublic);
-			setCtx.Invoke (null, new object[] { new TestExecutionContext () });
-
-			var main = new MainClass ();
-			main.TestServer ();
-		}
-
-		void TestServer ()
+		[TestFixtureSetUp]
+		public void Start ()
 		{
 			listener = new Listener (9999);
+		}
 
-			foreach (var test in GetPostTests ())
-				TestPost (listener, test);
-			foreach (var test in GetDeleteTests ())
-				TestPost (listener, test);
+		[TestFixtureTearDown]
+		public void Stop ()
+		{
+			listener.Stop ();
 		}
 
 		IEnumerable<Handler> GetPostTests ()
@@ -76,7 +64,10 @@ namespace Xamarin.WebTests
 			yield return new DeleteHandler () { Description = "DELETE with request body", Body = "I have a body!" };
 		}
 
-		void TestPost (Listener listener, Handler handler)
+		[Category ("Work")]
+		[TestCaseSource ("GetPostTests")]
+		[TestCaseSource ("GetDeleteTests")]
+		public void Run (Handler handler)
 		{
 			var request = handler.CreateRequest (listener);
 			var response = (HttpWebResponse)request.GetResponse ();
