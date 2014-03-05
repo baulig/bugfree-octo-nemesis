@@ -41,7 +41,6 @@
     <Compile Include="Client\AbstractPuppy.cs" />
     <Compile Include="Client\GetPuppy.cs" />
     <Compile Include="Client\PostPuppy.cs" />
-    <Compile Include="Client\RequestFlags.cs" />
     <Compile Include="Infrastructure\WebTestFixture.cs" />
     <Compile Include="Infrastructure\SimpleTest.cs" />
     <Compile Include="Tests\ConnectionReuse.cs" />
@@ -49,6 +48,7 @@
     <Compile Include="Tests\Simple.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Infrastructure\Settings.cs" />
+    <Compile Include="Client\PuppyFlags.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

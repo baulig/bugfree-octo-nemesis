@@ -40,7 +40,7 @@ namespace Xamarin.WebTests.RemoteServer.Tests
 	{
 		[Category("Simple")]
 		[TestCaseSource("AllFlags")]
-		public void TestSimpleGet (RequestFlags flags)
+		public void TestSimpleGet (PuppyFlags flags)
 		{
 			var response = GetResponse ("www/index.html", flags);
 			try {
@@ -86,7 +86,7 @@ namespace Xamarin.WebTests.RemoteServer.Tests
 
 		[Category("Simple")]
 		[TestCaseSource("AllFlags")]
-		public void TestNoWriteStreamBuffering (RequestFlags flags)
+		public void TestNoWriteStreamBuffering (PuppyFlags flags)
 		{
 			var req = GetPuppy.CreateRequest (flags, TransferMode.Default);
 

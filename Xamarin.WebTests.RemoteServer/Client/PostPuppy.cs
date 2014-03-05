@@ -64,7 +64,7 @@ namespace Xamarin.WebTests.RemoteServer.Client
 			return puppy;
 		}
 
-		public static HttpWebRequest CreateRequest (RequestFlags flags, TransferMode mode, string body)
+		public static HttpWebRequest CreateRequest (PuppyFlags flags, TransferMode mode, string body)
 		{
 			var request = WebTestFixture.CreateWebRequest ("www/cgi-bin/post-puppy.pl?mode=" + GetModeString (mode), flags);
 			request.ContentType = "text/plain";

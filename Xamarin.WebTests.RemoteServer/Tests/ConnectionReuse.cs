@@ -116,7 +116,7 @@ namespace Xamarin.WebTests.RemoteServer.Tests
 				private set;
 			}
 
-			public ReuseTest (RequestFlags flags, TransferMode mode, int count, int limit = 10)
+			public ReuseTest (PuppyFlags flags, TransferMode mode, int count, int limit = 10)
 				: base (flags, mode)
 			{
 				Count = count;

@@ -46,14 +46,14 @@ namespace Xamarin.WebTests.RemoteServer.Client
 			return puppy;
 		}
 
-		public static GetPuppy Get (RequestFlags flags, TransferMode mode)
+		public static GetPuppy Get (PuppyFlags flags, TransferMode mode)
 		{
 			var request = CreateRequest (flags, mode);
 			var response = (HttpWebResponse)request.GetResponse ();
 			return Read (response);
 		}
 
-		public static HttpWebRequest CreateRequest (RequestFlags flags, TransferMode mode)
+		public static HttpWebRequest CreateRequest (PuppyFlags flags, TransferMode mode)
 		{
 			return WebTestFixture.CreateWebRequest ("www/cgi-bin/get-puppy.pl?mode=" + GetModeString (mode), flags);
 		}

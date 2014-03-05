@@ -32,7 +32,7 @@ namespace Xamarin.WebTests.RemoteServer.Infrastructure
 
 	public class SimpleTest
 	{
-		public RequestFlags Flags {
+		public PuppyFlags Flags {
 			get;
 			private set;
 		}
@@ -42,7 +42,7 @@ namespace Xamarin.WebTests.RemoteServer.Infrastructure
 			private set;
 		}
 
-		public SimpleTest (RequestFlags flags, TransferMode mode)
+		public SimpleTest (PuppyFlags flags, TransferMode mode)
 		{
 			Flags = flags;
 			TransferMode = mode;

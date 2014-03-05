@@ -55,7 +55,7 @@ namespace Xamarin.WebTests.RemoteServer.Tests
 		public void FollowRedirect (RedirectTest test)
 		{
 			var path = string.Format ("redirects/same-server/{0}/index.html", (int)test.Code);
-			var response = GetResponse (path, test.Flags | RequestFlags.AutoRedirect);
+			var response = GetResponse (path, test.Flags | PuppyFlags.AutoRedirect);
 			try {
 				Assert.AreEqual (HttpStatusCode.OK, response.StatusCode, "#1");
 			} finally {
@@ -85,12 +85,12 @@ namespace Xamarin.WebTests.RemoteServer.Tests
 
 		public static IEnumerable Broken ()
 		{
-			yield return new RedirectTest { Flags = RequestFlags.UseProxy, Code = HttpStatusCode.Redirect };
+			yield return new RedirectTest { Flags = PuppyFlags.UseProxy, Code = HttpStatusCode.Redirect };
 		}
 
 		public class RedirectTest
 		{
-			public RequestFlags Flags {
+			public PuppyFlags Flags {
 				get;
 				set;
 			}

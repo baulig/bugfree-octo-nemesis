@@ -28,7 +28,7 @@ using System;
 namespace Xamarin.WebTests.RemoteServer.Client
 {
 	[Flags]
-	public enum RequestFlags
+	public enum PuppyFlags
 	{
 		None		= 0,
 		UseSSL		= 1,

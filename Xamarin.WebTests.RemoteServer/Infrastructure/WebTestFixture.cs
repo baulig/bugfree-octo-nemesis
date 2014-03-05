@@ -34,19 +34,19 @@ namespace Xamarin.WebTests.RemoteServer.Infrastructure
 
 	public abstract class WebTestFixture
 	{
-		public static bool UseSSL (RequestFlags flags)
+		public static bool UseSSL (PuppyFlags flags)
 		{
-			return (flags & RequestFlags.UseSSL) != 0;
+			return (flags & PuppyFlags.UseSSL) != 0;
 		}
 
-		public static bool UseProxy (RequestFlags flags)
+		public static bool UseProxy (PuppyFlags flags)
 		{
-			return (flags & RequestFlags.UseProxy) != 0;
+			return (flags & PuppyFlags.UseProxy) != 0;
 		}
 
-		public static bool AutoRedirect (RequestFlags flags)
+		public static bool AutoRedirect (PuppyFlags flags)
 		{
-			return (flags & RequestFlags.AutoRedirect) != 0;
+			return (flags & PuppyFlags.AutoRedirect) != 0;
 		}
 
 		public void Debug (string function, params object[] args)
@@ -56,12 +56,12 @@ namespace Xamarin.WebTests.RemoteServer.Infrastructure
 			Console.WriteLine (message);
 		}
 
-		protected static readonly RequestFlags[] AllFlags = { RequestFlags.None, RequestFlags.UseSSL, RequestFlags.UseProxy, RequestFlags.UseSSL | RequestFlags.UseProxy };
-		protected static readonly RequestFlags[] NoProxyFlags = { RequestFlags.None, RequestFlags.UseSSL };
+		protected static readonly PuppyFlags[] AllFlags = { PuppyFlags.None, PuppyFlags.UseSSL, PuppyFlags.UseProxy, PuppyFlags.UseSSL | PuppyFlags.UseProxy };
+		protected static readonly PuppyFlags[] NoProxyFlags = { PuppyFlags.None, PuppyFlags.UseSSL };
 		protected static readonly HttpStatusCode[] AllRedirectCodes = { HttpStatusCode.Moved, HttpStatusCode.Found, HttpStatusCode.SeeOther, HttpStatusCode.TemporaryRedirect };
 		protected static readonly TransferMode[] AllTransferModes = { TransferMode.Default, TransferMode.ContentLength, TransferMode.Chunked };
 
-		public static HttpWebRequest CreateWebRequest (string path, RequestFlags flags, string method = "GET")
+		public static HttpWebRequest CreateWebRequest (string path, PuppyFlags flags, string method = "GET")
 		{
 			var proto = UseSSL (flags) ? "https" : "http";
 			var uri = string.Format ("{0}://{1}{2}{3}", proto, Settings.WebHost, Settings.WebPrefix, path);
@@ -75,7 +75,7 @@ namespace Xamarin.WebTests.RemoteServer.Infrastructure
 			return wr;
 		}
 
-		static IWebProxy GetProxy (RequestFlags flags)
+		static IWebProxy GetProxy (PuppyFlags flags)
 		{
 			var proxy = new WebProxy (UseSSL (flags) ? Settings.SquidAddressSSL : Settings.SquidAddress);
 			if (!string.IsNullOrEmpty (Settings.SquidUser))
@@ -83,7 +83,7 @@ namespace Xamarin.WebTests.RemoteServer.Infrastructure
 			return proxy;
 		}
 
-		public static HttpWebResponse GetResponse (string path, RequestFlags flags, string method = "GET")
+		public static HttpWebResponse GetResponse (string path, PuppyFlags flags, string method = "GET")
 		{
 			var request = CreateWebRequest (path, flags, method);
 			request.Timeout = 2500;
