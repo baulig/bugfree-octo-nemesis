@@ -43,7 +43,6 @@ namespace Xamarin.WebTests.Server
 		int? writeChunkSize;
 		int? writeChunkMinDelay, writeChunkMaxDelay;
 		bool? allowWriteBuffering;
-		bool redirectedAsGet;
 		TransferMode mode = TransferMode.Default;
 
 		public TransferMode Mode {
@@ -134,26 +133,16 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		public bool RedirectedAsGet {
-			get {
-				return redirectedAsGet;
-			}
-			set {
-				WantToModify ();
-				redirectedAsGet = value;
-			}
-		}
-
 		internal bool HandlePostRequest (Connection connection)
 		{
-			return HandlePostRequest (connection, false);
+			return HandlePostRequest (connection, RequestFlags.None);
 		}
 
-		bool HandlePostRequest (Connection connection, bool redirectedAsGet)
+		bool HandlePostRequest (Connection connection, RequestFlags effectiveFlags)
 		{
-			Debug (0, "HANDLE POST", connection.Path, connection.Method, redirectedAsGet);
+			Debug (0, "HANDLE POST", connection.Path, connection.Method, effectiveFlags);
 
-			if (redirectedAsGet) {
+			if (effectiveFlags == RequestFlags.RedirectedAsGet) {
 				if (!connection.Method.Equals ("GET")) {
 					WriteError (connection, "Wrong method: {0}", connection.Method);
 					return false;
@@ -165,24 +154,24 @@ namespace Xamarin.WebTests.Server
 				}
 			}
 
-			return CheckTransferMode (connection, redirectedAsGet);
+			return CheckTransferMode (connection, effectiveFlags);
 		}
 
 		protected override bool DoHandleRequest (Connection connection)
 		{
-			if (!HandlePostRequest (connection, redirectedAsGet))
+			if (!HandlePostRequest (connection, Flags))
 				return false;
 
 			WriteSuccess (connection);
 			return true;
 		}
 
-		bool CheckTransferMode (Connection connection, bool redirectedAsGet)
+		bool CheckTransferMode (Connection connection, RequestFlags effectiveFlags)
 		{
 			var haveContentLength = connection.Headers.ContainsKey ("Content-Length");
 			var haveTransferEncoding = connection.Headers.ContainsKey ("Transfer-Encoding");
 
-			if (redirectedAsGet) {
+			if (effectiveFlags == RequestFlags.RedirectedAsGet) {
 				if (haveContentLength) {
 					WriteError (connection, "Content-Length header not allowed");
 					return false;

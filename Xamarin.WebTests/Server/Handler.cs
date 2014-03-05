@@ -32,6 +32,8 @@ using System.Collections.Generic;
 
 namespace Xamarin.WebTests.Server
 {
+	using Framework;
+
 	public abstract class Handler
 	{
 		static int debugLevel = 2;
@@ -39,6 +41,14 @@ namespace Xamarin.WebTests.Server
 		public static int DebugLevel {
 			get { return debugLevel; }
 			set { debugLevel = value; }
+		}
+
+		public RequestFlags Flags {
+			get { return flags; }
+			set {
+				WantToModify ();
+				flags = value;
+			}
 		}
 
 		public string Description {
@@ -50,6 +60,7 @@ namespace Xamarin.WebTests.Server
 		}
 
 		bool hasRequest;
+		RequestFlags flags;
 		TaskCompletionSource<bool> tcs;
 
 		protected void WantToModify ()

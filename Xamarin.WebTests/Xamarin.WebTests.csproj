@@ -62,6 +62,7 @@
     <Compile Include="Framework\TransferMode.cs" />
     <Compile Include="Tests\TestPost.cs" />
     <Compile Include="Server\RedirectHandler.cs" />
+    <Compile Include="Framework\RequestFlags.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

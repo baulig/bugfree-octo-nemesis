@@ -91,7 +91,9 @@ namespace Xamarin.WebTests.Tests
 					var hasBody = post.Body != null;
 
 					if ((hasBody || !isWindows) && (code == HttpStatusCode.MovedPermanently || code == HttpStatusCode.Found))
-						post.RedirectedAsGet = true;
+						post.Flags = RequestFlags.RedirectedAsGet;
+					else
+						post.Flags = RequestFlags.Redirected;
 					post.Description = string.Format ("{0}: {1}", code, post.Description);
 					yield return new RedirectHandler (post, code) { Description = post.Description };
 				}
@@ -101,7 +103,7 @@ namespace Xamarin.WebTests.Tests
 		public IEnumerable<Handler> BrokenRedirect ()
 		{
 			var post = new PostHandler () {
-				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, RedirectedAsGet = true
+				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, Flags = RequestFlags.RedirectedAsGet
 			};
 			var redirect = new RedirectHandler (post, HttpStatusCode.SeeOther) { Description = post.Description };
 			yield return redirect;
