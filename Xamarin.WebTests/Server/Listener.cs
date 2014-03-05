@@ -103,11 +103,11 @@ namespace Xamarin.WebTests.Server
 
 			try {
 				HandleConnection (socket);
-				socket.Close ();
 				t.SetResult (true);
 			} catch (Exception ex) {
 				t.SetException (ex);
 			} finally {
+				socket.Close ();
 				lock (this) {
 					tcs = null;
 					if (!abortRequested)
