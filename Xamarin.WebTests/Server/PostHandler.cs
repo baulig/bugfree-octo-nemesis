@@ -40,6 +40,8 @@ namespace Xamarin.WebTests.Server
 		string body;
 		int? readChunkSize;
 		int? readChunkMinDelay, readChunkMaxDelay;
+		int? writeChunkSize;
+		int? writeChunkMinDelay, writeChunkMaxDelay;
 		bool? allowWriteBuffering;
 		bool redirectedAsGet;
 		TransferMode mode = TransferMode.Default;
@@ -102,6 +104,36 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
+		public int? WriteChunkSize {
+			get {
+				return writeChunkSize;
+			}
+			set {
+				WantToModify ();
+				writeChunkSize = value;
+			}
+		}
+
+		public int? WriteChunkMinDelay {
+			get {
+				return writeChunkMinDelay;
+			}
+			set {
+				WantToModify ();
+				writeChunkMinDelay = value;
+			}
+		}
+
+		public int? WriteChunkMaxDelay {
+			get {
+				return writeChunkMaxDelay;
+			}
+			set {
+				WantToModify ();
+				writeChunkMaxDelay = value;
+			}
+		}
+
 		public bool RedirectedAsGet {
 			get {
 				return redirectedAsGet;
@@ -114,7 +146,7 @@ namespace Xamarin.WebTests.Server
 
 		protected override bool DoHandleRequest (Connection connection)
 		{
-			Console.WriteLine ("HANDLE POST: {0} {1} {2} {3}", this, connection.Path, connection.Method, redirectedAsGet);
+			Debug (0, "HANDLE POST", connection.Path, connection.Method, redirectedAsGet);
 
 			if (redirectedAsGet) {
 				if (!connection.Method.Equals ("GET")) {
@@ -217,10 +249,6 @@ namespace Xamarin.WebTests.Server
 		{
 			var length = int.Parse (connection.Headers ["Content-Length"]);
 
-			string type;
-			if (connection.Headers.TryGetValue ("Content-Type", out type))
-				Console.WriteLine ("CONTENT-TYPE: {0}", type);
-
 			var chunkSize = ReadChunkSize ?? length;
 			var minDelay = ReadChunkMinDelay ?? 0;
 			var maxDelay = ReadChunkMaxDelay ?? 0;
@@ -232,7 +260,6 @@ namespace Xamarin.WebTests.Server
 			int offset = 0;
 			while (offset < length) {
 				int delay = minDelay + random.Next (delayRange);
-				Console.WriteLine ("READ STATIC BODY: {0} {1} {2}", offset, length, delay);
 				Thread.Sleep (delay);
 
 				var size = Math.Min (length - offset, chunkSize);
@@ -296,13 +323,36 @@ namespace Xamarin.WebTests.Server
 			}
 
 			if (Body != null) {
-				using (var writer = new StreamWriter (request.GetRequestStream ())) {
+				using (var stream = request.GetRequestStream ()) {
 					if (!string.IsNullOrEmpty (Body))
-						writer.Write (Body);
+						WriteBody (stream, Body);
 				}
 			}
 
 			return request;
+		}
+
+		void WriteBody (Stream writer, string body)
+		{
+			var buffer = new UTF8Encoding ().GetBytes (body);
+
+			var length = buffer.Length;
+			var chunkSize = WriteChunkSize ?? length;
+			var minDelay = WriteChunkMinDelay ?? 0;
+			var maxDelay = WriteChunkMaxDelay ?? 0;
+
+			var random = new Random ();
+			var delayRange = maxDelay - minDelay;
+
+			int offset = 0;
+			while (offset < length) {
+				int delay = minDelay + random.Next (delayRange);
+				Thread.Sleep (delay);
+
+				var size = Math.Min (length - offset, chunkSize);
+				writer.Write (buffer, offset, size);
+				offset += size;
+			}
 		}
 	}
 }

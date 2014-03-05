@@ -33,6 +33,7 @@ using NUnit.Framework;
 namespace Xamarin.WebTests.Tests
 {
 	using Server;
+	using Framework;
 
 	[TestFixture]
 	public class TestPost
@@ -53,9 +54,26 @@ namespace Xamarin.WebTests.Tests
 
 		public IEnumerable<PostHandler> GetPostTests ()
 		{
-			yield return new PostHandler () { Description = "No request stream" };
-			yield return new PostHandler () { Description = "Empty request stream", Body = string.Empty };
-			yield return new PostHandler () { Body = "Hello World!" };
+			yield return new PostHandler () {
+				Description = "No request stream"
+			};
+			yield return new PostHandler () {
+				Description = "Empty request stream", Body = string.Empty
+			};
+			yield return new PostHandler () {
+				Description = "Normal post",
+				Body = "Hello Unknown World!"
+			};
+			yield return new PostHandler () {
+				Description = "Content-Length",
+				Body = "Hello Known World!",
+				Mode = TransferMode.ContentLength
+			};
+			yield return new PostHandler () {
+				Description = "Chunked",
+				Body = "Hello Chunked World!",
+				Mode = TransferMode.Chunked
+			};
 		}
 
 		public IEnumerable<Handler> GetDeleteTests ()
@@ -80,10 +98,30 @@ namespace Xamarin.WebTests.Tests
 			}
 		}
 
+		public IEnumerable<Handler> BrokenRedirect ()
+		{
+			var post = new PostHandler () {
+				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, RedirectedAsGet = true
+			};
+			var redirect = new RedirectHandler (post, HttpStatusCode.SeeOther) { Description = post.Description };
+			yield return redirect;
+		}
+
+		[Test]
 		[Category ("Work")]
-		[TestCaseSource ("GetPostTests")]
-		[TestCaseSource ("GetDeleteTests")]
-		[TestCaseSource ("GetRedirectTests")]
+		public void Repeat ()
+		{
+			for (int i = 0; i < 50; i++) {
+				foreach (var handler in BrokenRedirect ())
+					Run (handler);
+			}
+		}
+
+		// [Category ("Work")]
+		// [TestCaseSource ("GetPostTests")]
+		// [TestCaseSource ("GetDeleteTests")]
+		// [TestCaseSource ("GetRedirectTests")]
+		// [TestCaseSource ("BrokenRedirect")]
 		public void Run (Handler handler)
 		{
 			var request = handler.CreateRequest (listener);

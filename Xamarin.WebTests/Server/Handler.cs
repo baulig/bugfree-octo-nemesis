@@ -26,6 +26,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -33,6 +34,13 @@ namespace Xamarin.WebTests.Server
 {
 	public abstract class Handler
 	{
+		static int debugLevel = 2;
+
+		public static int DebugLevel {
+			get { return debugLevel; }
+			set { debugLevel = value; }
+		}
+
 		public string Description {
 			get; set;
 		}
@@ -65,9 +73,31 @@ namespace Xamarin.WebTests.Server
 			WriteSimpleResponse (connection, 200, "OK", body);
 		}
 
+		protected void Debug (int level, string message, params object[] args)
+		{
+			if (DebugLevel < level)
+				return;
+			var sb = new StringBuilder ();
+			sb.AppendFormat ("{0}: {1}", this, message);
+			for (int i = 0; i < args.Length; i++) {
+				sb.Append (" ");
+				sb.Append (args [i] != null ? args [i].ToString () : "<null>");
+			}
+			Console.Error.WriteLine (sb.ToString ());
+		}
+
+		protected void DumpHeaders (Connection connection)
+		{
+			if (DebugLevel < 2)
+				return;
+			foreach (var header in connection.Headers) {
+				Console.Error.WriteLine ("  {0} = {1}", header.Key, header.Value);
+			}
+		}
+
 		protected void WriteSimpleResponse (Connection connection, int status, string message, string body)
 		{
-			Console.WriteLine ("RESPONSE: {0} {1} {2}", status, message, body);
+			Debug (0, "RESPONSE", status, message, body);
 
 			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0} {1}", status, message);
 			connection.ResponseWriter.WriteLine ("Content-Type: text/plain");
@@ -82,7 +112,7 @@ namespace Xamarin.WebTests.Server
 
 		protected void WriteRedirect (Connection connection, int code, Uri uri)
 		{
-			Console.WriteLine ("REDIRECT: {0} {1}", code, uri);
+			Debug (0, "REDIRECT", code, uri);
 
 			connection.ResponseWriter.WriteLine ("HTTP/1.1 {0}", code);
 			connection.ResponseWriter.WriteLine ("Location: {0}", uri);
@@ -92,12 +122,13 @@ namespace Xamarin.WebTests.Server
 		public void HandleRequest (Connection connection)
 		{
 			try {
-				Console.WriteLine ("HANDLE REQUEST: {0}", this);
+				Debug (0, "HANDLE REQUEST");
+				DumpHeaders (connection);
 				var success = DoHandleRequest (connection);
-				Console.WriteLine ("HANDLE REQUEST DONE: {0} {1}", this, success);
+				Debug (0, "HANDLE REQUEST DONE", success);
 				tcs.SetResult (success);
 			} catch (Exception ex) {
-				Console.WriteLine ("HANDLE REQUEST EX: {0} {1}", this, ex);
+				Debug (0, "HANDLE REQUEST EX", ex);
 				WriteError (connection, "Caught unhandled exception", ex);
 				tcs.SetException (ex);
 			}
