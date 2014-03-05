@@ -144,7 +144,12 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		protected override bool DoHandleRequest (Connection connection)
+		internal bool HandlePostRequest (Connection connection)
+		{
+			return HandlePostRequest (connection, false);
+		}
+
+		bool HandlePostRequest (Connection connection, bool redirectedAsGet)
 		{
 			Debug (0, "HANDLE POST", connection.Path, connection.Method, redirectedAsGet);
 
@@ -160,14 +165,19 @@ namespace Xamarin.WebTests.Server
 				}
 			}
 
-			if (!CheckTransferMode (connection))
+			return CheckTransferMode (connection, redirectedAsGet);
+		}
+
+		protected override bool DoHandleRequest (Connection connection)
+		{
+			if (!HandlePostRequest (connection, redirectedAsGet))
 				return false;
 
 			WriteSuccess (connection);
 			return true;
 		}
 
-		bool CheckTransferMode (Connection connection)
+		bool CheckTransferMode (Connection connection, bool redirectedAsGet)
 		{
 			var haveContentLength = connection.Headers.ContainsKey ("Content-Length");
 			var haveTransferEncoding = connection.Headers.ContainsKey ("Transfer-Encoding");

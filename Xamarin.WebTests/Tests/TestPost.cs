@@ -117,13 +117,15 @@ namespace Xamarin.WebTests.Tests
 			}
 		}
 
-		// [Category ("Work")]
-		// [TestCaseSource ("GetPostTests")]
-		// [TestCaseSource ("GetDeleteTests")]
+		[Category ("Work")]
+		[TestCaseSource ("GetPostTests")]
+		[TestCaseSource ("GetDeleteTests")]
 		// [TestCaseSource ("GetRedirectTests")]
 		// [TestCaseSource ("BrokenRedirect")]
 		public void Run (Handler handler)
 		{
+			Console.Error.WriteLine ("RUN: {0}", handler);
+
 			var request = handler.CreateRequest (listener);
 			var response = (HttpWebResponse)request.GetResponse ();
 
@@ -133,6 +135,8 @@ namespace Xamarin.WebTests.Tests
 			} finally {
 				response.Close ();
 			}
+
+			Console.Error.WriteLine ("RUN DONE: {0}", handler);
 		}
 	}
 }

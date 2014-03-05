@@ -57,6 +57,12 @@ namespace Xamarin.WebTests.Server
 
 		protected override bool DoHandleRequest (Connection connection)
 		{
+			var postHandler = Target as PostHandler;
+			if (postHandler != null) {
+				if (!postHandler.HandlePostRequest (connection))
+					return false;
+			}
+
 			var targetUri = Target.RegisterRequest (connection.Server);
 			WriteRedirect (connection, (int)Code, targetUri);
 			return true;

@@ -85,8 +85,10 @@ namespace Xamarin.WebTests.Server
 			string line;
 			var header = reader.ReadLine ();
 			var fields = header.Split (new char[] { ' ' }, StringSplitOptions.None);
-			if (fields.Length != 3)
+			if (fields.Length != 3) {
+				Console.Error.WriteLine ("GOT INVALID HTTP REQUEST: {0}", header);
 				throw new InvalidOperationException ();
+			}
 
 			Method = fields [0];
 			Path = fields [1];
