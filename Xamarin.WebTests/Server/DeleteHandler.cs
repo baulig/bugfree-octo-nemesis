@@ -64,22 +64,29 @@ namespace Xamarin.WebTests.Server
 		bool CheckRequest (Connection connection)
 		{
 			string value;
-			if (Body != null) {
-				if (!connection.Headers.TryGetValue ("Content-Length", out value)) {
-					WriteError (connection, "Missing Content-Length");
+			var hasLength = connection.Headers.TryGetValue ("Content-Length", out value);
+			var hasExplicitLength = (Flags & RequestFlags.ExplicitlySetLength) != 0;
+
+			if (hasLength) {
+				var length = int.Parse (value);
+
+				if (Body != null)
+					return ReadStaticBody (connection, length);
+				else if (hasExplicitLength) {
+					if (length != 0) {
+						WriteError (connection, "Content-Length must be zero");
+						return false;
+					}
+				} else {
+					WriteError (connection, "Content-Length not allowed.");
 					return false;
 				}
-
-				int length = int.Parse (value);
-				return ReadStaticBody (connection, length);
-			} else {
-				if (connection.Headers.ContainsKey ("Content-Length")) {
-					WriteError (connection, "Content-Length not allowed");
-					return false;
-				}
-
-				return true;
+			} else if (hasExplicitLength || Body != null) {
+				WriteError (connection, "Missing Content-Length");
+				return false;
 			}
+
+			return true;
 		}
 
 		bool ReadStaticBody (Connection connection, int length)
@@ -104,6 +111,9 @@ namespace Xamarin.WebTests.Server
 		{
 			var request = base.CreateRequest (uri);
 			request.Method = "DELETE";
+
+			if (Flags == RequestFlags.ExplicitlySetLength)
+				request.ContentLength = Body != null ? Body.Length : 0;
 
 			if (Body != null) {
 				using (var writer = new StreamWriter (request.GetRequestStream ())) {

@@ -55,10 +55,10 @@ namespace Xamarin.WebTests.Tests
 		public IEnumerable<PostHandler> GetPostTests ()
 		{
 			yield return new PostHandler () {
-				Description = "No request stream"
+				Description = "No body"
 			};
 			yield return new PostHandler () {
-				Description = "Empty request stream", Body = string.Empty
+				Description = "Empty body", Body = string.Empty
 			};
 			yield return new PostHandler () {
 				Description = "Normal post",
@@ -88,8 +88,18 @@ namespace Xamarin.WebTests.Tests
 		public IEnumerable<Handler> GetDeleteTests ()
 		{
 			yield return new DeleteHandler ();
-			yield return new DeleteHandler () { Description = "DELETE with empty request stream", Body = string.Empty };
-			yield return new DeleteHandler () { Description = "DELETE with request body", Body = "I have a body!" };
+			yield return new DeleteHandler () {
+				Description = "DELETE with empty body",
+				Body = string.Empty
+			};
+			yield return new DeleteHandler () {
+				Description = "DELETE with request body",
+				Body = "I have a body!"
+			};
+			yield return new DeleteHandler () {
+				Description = "DELETE with no body and a length",
+				Flags = RequestFlags.ExplicitlySetLength
+			};
 		}
 
 		public IEnumerable<Handler> GetRedirectTests ()

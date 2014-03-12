@@ -142,7 +142,7 @@ namespace Xamarin.WebTests.Server
 		{
 			Debug (0, "HANDLE POST", connection.Path, connection.Method, effectiveFlags);
 
-			if (effectiveFlags == RequestFlags.RedirectedAsGet) {
+			if ((effectiveFlags & RequestFlags.RedirectedAsGet) != 0) {
 				if (!connection.Method.Equals ("GET")) {
 					WriteError (connection, "Wrong method: {0}", connection.Method);
 					return false;
@@ -171,7 +171,7 @@ namespace Xamarin.WebTests.Server
 			var haveContentLength = connection.Headers.ContainsKey ("Content-Length");
 			var haveTransferEncoding = connection.Headers.ContainsKey ("Transfer-Encoding");
 
-			if (effectiveFlags == RequestFlags.RedirectedAsGet) {
+			if ((effectiveFlags & RequestFlags.RedirectedAsGet) != 0) {
 				if (haveContentLength) {
 					WriteError (connection, "Content-Length header not allowed");
 					return false;
@@ -312,6 +312,9 @@ namespace Xamarin.WebTests.Server
 
 			if (AllowWriteStreamBuffering != null)
 				request.AllowWriteStreamBuffering = AllowWriteStreamBuffering.Value;
+
+			if (((Flags & RequestFlags.ExplicitlySetLength) != 0) && (Mode != TransferMode.ContentLength))
+				throw new InvalidOperationException ();
 
 			switch (Mode) {
 			case TransferMode.Chunked:

@@ -30,8 +30,9 @@ namespace Xamarin.WebTests.Framework
 	public enum RequestFlags
 	{
 		None,
-		Redirected,
-		RedirectedAsGet
+		Redirected		= 1,
+		RedirectedAsGet		= 2,
+		ExplicitlySetLength	= 4
 	}
 }
 
