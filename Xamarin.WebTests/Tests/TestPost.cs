@@ -103,14 +103,14 @@ namespace Xamarin.WebTests.Tests
 		public IEnumerable<Handler> BrokenRedirect ()
 		{
 			var post = new PostHandler () {
-				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, Flags = RequestFlags.RedirectedAsGet
+				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, Flags = RequestFlags.Redirected
 			};
-			var redirect = new RedirectHandler (post, HttpStatusCode.SeeOther) { Description = post.Description };
+			var redirect = new RedirectHandler (post, HttpStatusCode.TemporaryRedirect) { Description = post.Description };
 			yield return redirect;
 		}
 
 		[Test]
-		[Category ("Work")]
+		[Category ("Repeat")]
 		public void Repeat ()
 		{
 			for (int i = 0; i < 50; i++) {

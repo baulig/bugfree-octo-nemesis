@@ -95,7 +95,7 @@ namespace Xamarin.WebTests.Server
 			RequestUri = new Uri (server.Uri, Path);
 			var proto = fields [2];
 
-			if (!proto.Equals ("HTTP/1.1"))
+			if (!proto.Equals ("HTTP/1.1") && !proto.Equals ("HTTP/1.0"))
 				throw new InvalidOperationException ();
 
 			while ((line = reader.ReadLine ()) != null) {

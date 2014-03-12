@@ -276,6 +276,9 @@ namespace Xamarin.WebTests.Server
 
 		string ReadChunkedBody (Connection connection)
 		{
+			if (connection.Headers.ContainsKey ("Content-Length"))
+				throw new InvalidOperationException ();
+
 			var body = new StringBuilder ();
 
 			do {
