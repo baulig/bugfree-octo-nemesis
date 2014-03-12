@@ -319,8 +319,9 @@ namespace Xamarin.WebTests.Server
 				break;
 			case TransferMode.ContentLength:
 				if (body == null)
-					throw new InvalidOperationException ();
-				request.ContentLength = body.Length;
+					request.ContentLength = 0;
+				else
+					request.ContentLength = body.Length;
 				break;
 			}
 
@@ -341,7 +342,7 @@ namespace Xamarin.WebTests.Server
 			var length = buffer.Length;
 			var chunkSize = WriteChunkSize ?? length;
 			var minDelay = WriteChunkMinDelay ?? 0;
-			var maxDelay = WriteChunkMaxDelay ?? 0;
+			var maxDelay = WriteChunkMaxDelay ?? minDelay;
 
 			var random = new Random ();
 			var delayRange = maxDelay - minDelay;

@@ -42,10 +42,10 @@ namespace Xamarin.WebTests.Server
 
 		static int nextId;
 
-		public Listener (int port)
+		public Listener (IPAddress address, int port)
 		{
-			uri = new Uri (string.Format ("http://127.0.0.1:{0}/", port));
-			listener = new TcpListener (IPAddress.Loopback, port);
+			listener = new TcpListener (address, port);
+			uri = new Uri (string.Format ("http://{0}:{1}/", address, port));
 			handlers = new Dictionary<string, Handler> ();
 			listener.Start ();
 

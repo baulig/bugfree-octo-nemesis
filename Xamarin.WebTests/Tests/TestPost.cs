@@ -43,7 +43,7 @@ namespace Xamarin.WebTests.Tests
 		[TestFixtureSetUp]
 		public void Start ()
 		{
-			listener = new Listener (9999);
+			listener = new Listener (IPAddress.Loopback, 9999);
 		}
 
 		[TestFixtureTearDown]
