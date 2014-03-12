@@ -6,7 +6,7 @@
     <ProductVersion>10.0.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{BF486D77-DB4B-4AFD-B921-7629F74322A8}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>Xamarin.WebTests.RemoteServer</RootNamespace>
     <AssemblyName>Xamarin.WebTests.RemoteServer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -49,16 +49,18 @@
     <Compile Include="Program.cs" />
     <Compile Include="Infrastructure\Settings.cs" />
     <Compile Include="Client\PuppyFlags.cs" />
+    <Compile Include="..\Xamarin.WebTests\Framework\RequestFlags.cs">
+      <Link>Framework\RequestFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\Xamarin.WebTests\Framework\TransferMode.cs">
+      <Link>Framework\TransferMode.cs</Link>
+    </Compile>
+    <Compile Include="MainClass.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <ProjectReference Include="..\Xamarin.WebTests\Xamarin.WebTests.csproj">
-      <Project>{E93E8622-665B-44D6-B36A-89C93B5B3532}</Project>
-      <Name>Xamarin.WebTests</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Infrastructure\" />
+    <Folder Include="Framework\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

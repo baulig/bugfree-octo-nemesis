@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
 using System.Net;
 using System.Collections;
 using NUnit.Framework;
@@ -74,6 +75,31 @@ namespace Xamarin.WebTests.RemoteServer.Tests
 			} finally {
 				response.Close ();
 			}
+		}
+
+		[Category ("Work")]
+		[TestCaseSource ("RedirectTests")]
+		public void PostRedirect (RedirectTest test)
+		{
+			var prefix = string.Format ("redirects/same-server/{0}", (int)test.Code);
+			var puppy = PostPuppy.CreateRequest (PuppyFlags.AutoRedirect, TransferMode.Chunked, prefix, "Hello Chunked World!");
+			Console.WriteLine ("PUPPY: {0}", puppy);
+
+			HttpWebResponse response;
+			try {
+				response = (HttpWebResponse)puppy.GetResponse ();
+				Console.WriteLine ("GOT RESPONSE: {0}", response.StatusCode);
+			} catch (WebException ex) {
+				response = (HttpWebResponse)ex.Response;
+				Console.WriteLine ("GOT ERROR RESPONSE: {0}", response.StatusCode);
+			}
+
+			using (var reader = new StreamReader (response.GetResponseStream ())) {
+				var body = reader.ReadToEnd ();
+				Console.WriteLine ("GOT RESPONSE BODY: {0}", body);
+			}
+
+			response.Close ();
 		}
 
 		public static IEnumerable RedirectTests ()

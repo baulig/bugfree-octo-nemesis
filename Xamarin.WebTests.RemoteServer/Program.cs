@@ -1,3 +1,4 @@
+#if REMOTE_NUNIT
 // ***********************************************************************
 // Copyright (c) 2009 Charlie Poole
 //
@@ -79,3 +80,4 @@ namespace NUnitLite.Tests
         }
     }
 }
+#endif

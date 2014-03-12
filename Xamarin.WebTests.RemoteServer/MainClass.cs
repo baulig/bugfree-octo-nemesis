@@ -1,4 +1,5 @@
-﻿//
+﻿#if !REMOTE_NUNIT
+//
 // MainClass.cs
 //
 // Author:
@@ -24,14 +25,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Net;
 
 namespace Xamarin.WebTests.RemoteServer
 {
-	public class MainClass
+	using Client;
+	using Tests;
+
+	public static class MainClass
 	{
-		public MainClass ()
+		public static void Main ()
 		{
+			var redirect = new Redirect ();
+			redirect.PostRedirect (new Redirect.RedirectTest {
+				Flags = PuppyFlags.None,
+				Code = HttpStatusCode.TemporaryRedirect
+			});
 		}
 	}
 }
 
+#endif
