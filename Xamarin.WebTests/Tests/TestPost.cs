@@ -74,6 +74,15 @@ namespace Xamarin.WebTests.Tests
 				Body = "Hello Chunked World!",
 				Mode = TransferMode.Chunked
 			};
+			yield return new PostHandler () {
+				Description = "Explicit length and empty body",
+				Mode = TransferMode.ContentLength,
+				Body = string.Empty
+			};
+			yield return new PostHandler () {
+				Description = "Explicit length and no body",
+				Mode = TransferMode.ContentLength
+			};
 		}
 
 		public IEnumerable<Handler> GetDeleteTests ()
