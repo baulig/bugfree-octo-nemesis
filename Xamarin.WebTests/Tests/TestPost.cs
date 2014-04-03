@@ -119,7 +119,7 @@ namespace Xamarin.WebTests.Tests
 			}
 		}
 
-		public IEnumerable<Handler> BrokenRedirect ()
+		public IEnumerable<Handler> BrokenTests ()
 		{
 			var post = new PostHandler () {
 				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, Flags = RequestFlags.Redirected
@@ -133,17 +133,28 @@ namespace Xamarin.WebTests.Tests
 		public void Repeat ()
 		{
 			for (int i = 0; i < 50; i++) {
-				foreach (var handler in BrokenRedirect ())
+				foreach (var handler in BrokenTests ())
 					Run (handler);
 			}
 		}
 
+		[Category ("Test")]
+		[TestCaseSource ("BrokenTests")]
+		public void Work (Handler handler)
+		{
+			DoRun (handler);
+		}
+
 		[Category ("Work")]
-		// [TestCaseSource ("GetPostTests")]
-		// [TestCaseSource ("GetDeleteTests")]
-		// [TestCaseSource ("GetRedirectTests")]
-		[TestCaseSource ("BrokenRedirect")]
+		[TestCaseSource ("GetPostTests")]
+		[TestCaseSource ("GetDeleteTests")]
+		[TestCaseSource ("GetRedirectTests")]
 		public void Run (Handler handler)
+		{
+			DoRun (handler);
+		}
+
+		void DoRun (Handler handler)
 		{
 			Console.Error.WriteLine ("RUN: {0}", handler);
 

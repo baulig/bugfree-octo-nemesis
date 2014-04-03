@@ -254,10 +254,8 @@ namespace Xamarin.WebTests.Server
 
 		string ReadBody (Connection connection, bool chunked, RequestFlags effectiveFlags)
 		{
-			Console.WriteLine ("READ BODY: {0} {1}", chunked, effectiveFlags);
-			if ((effectiveFlags & RequestFlags.SendContinue) != 0) {
+			if ((effectiveFlags & RequestFlags.SendContinue) != 0)
 				WriteSimpleResponse (connection, 100, "CONTINUE", null);
-			}
 
 			return chunked ? ReadChunkedBody (connection) : ReadStaticBody (connection);
 		}
@@ -280,18 +278,14 @@ namespace Xamarin.WebTests.Server
 				Thread.Sleep (delay);
 
 				var size = Math.Min (length - offset, chunkSize);
-				Console.WriteLine ("READ: {0} {1}", offset, size);
 				int ret = connection.RequestReader.Read (buffer, offset, size);
-				Console.WriteLine ("READ #1: {0}", ret);
 				if (ret <= 0)
 					throw new InvalidOperationException ();
 
 				offset += ret;
 			}
 
-			var body = new string (buffer);
-			Console.WriteLine ("BODY: {0}", body);
-			return body;
+			return new string (buffer);
 		}
 
 		string ReadChunkedBody (Connection connection)
@@ -300,8 +294,6 @@ namespace Xamarin.WebTests.Server
 				throw new InvalidOperationException ();
 
 			var body = new StringBuilder ();
-
-			Console.WriteLine ("READ CHUNKED BODY");
 
 			do {
 				var header = connection.RequestReader.ReadLine ();
