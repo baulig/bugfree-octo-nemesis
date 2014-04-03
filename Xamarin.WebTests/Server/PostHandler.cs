@@ -221,11 +221,8 @@ namespace Xamarin.WebTests.Server
 				break;
 
 			case TransferMode.Chunked:
-				if ((effectiveFlags & RequestFlags.Redirected) != 0) {
-					// MS rewrites this.
-					if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-						goto case TransferMode.ContentLength;
-				}
+				if ((effectiveFlags & RequestFlags.Redirected) != 0)
+					goto case TransferMode.ContentLength;
 
 				if (haveContentLength) {
 					WriteError (connection, "Content-Length header not allowed");
