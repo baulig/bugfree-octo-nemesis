@@ -122,7 +122,7 @@ namespace Xamarin.WebTests.Tests
 		public IEnumerable<Handler> BrokenRedirect ()
 		{
 			var post = new PostHandler () {
-				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.Chunked, Flags = RequestFlags.Redirected
+				Description = "Chunked post", Body = "Hello Chunked World!", Mode = TransferMode.ContentLength, Flags = RequestFlags.Redirected | RequestFlags.SendContinue
 			};
 			var redirect = new RedirectHandler (post, HttpStatusCode.TemporaryRedirect) { Description = post.Description };
 			yield return redirect;
@@ -139,10 +139,10 @@ namespace Xamarin.WebTests.Tests
 		}
 
 		[Category ("Work")]
-		[TestCaseSource ("GetPostTests")]
-		[TestCaseSource ("GetDeleteTests")]
+		// [TestCaseSource ("GetPostTests")]
+		// [TestCaseSource ("GetDeleteTests")]
 		// [TestCaseSource ("GetRedirectTests")]
-		// [TestCaseSource ("BrokenRedirect")]
+		[TestCaseSource ("BrokenRedirect")]
 		public void Run (Handler handler)
 		{
 			Console.Error.WriteLine ("RUN: {0}", handler);

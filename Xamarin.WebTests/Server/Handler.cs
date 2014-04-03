@@ -135,7 +135,7 @@ namespace Xamarin.WebTests.Server
 			try {
 				Debug (0, "HANDLE REQUEST");
 				DumpHeaders (connection);
-				var success = DoHandleRequest (connection);
+				var success = DoHandleRequest (connection, Flags);
 				Debug (0, "HANDLE REQUEST DONE", success);
 				tcs.SetResult (success);
 			} catch (Exception ex) {
@@ -145,7 +145,7 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		protected abstract bool DoHandleRequest (Connection connection);
+		protected abstract bool DoHandleRequest (Connection connection, RequestFlags effectiveFlags);
 
 		internal Uri RegisterRequest (Listener listener)
 		{
@@ -160,7 +160,11 @@ namespace Xamarin.WebTests.Server
 
 		public virtual HttpWebRequest CreateRequest (Uri uri)
 		{
-			return (HttpWebRequest)HttpWebRequest.Create (uri);
+			var request = (HttpWebRequest)HttpWebRequest.Create (uri);
+			// throws NotImplementedException on Mono.
+			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+				request.ContinueTimeout = 30000;
+			return request;
 		}
 
 		public HttpWebRequest CreateRequest (Listener listener)

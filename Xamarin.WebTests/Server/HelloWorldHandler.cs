@@ -27,9 +27,11 @@ using System;
 
 namespace Xamarin.WebTests.Server
 {
+	using Framework;
+
 	public class HelloWorldHandler : Handler
 	{
-		protected override bool DoHandleRequest (Connection connection)
+		protected override bool DoHandleRequest (Connection connection, RequestFlags effectiveFlags)
 		{
 			if (!connection.Method.Equals ("GET")) {
 				WriteError (connection, "Wrong method: {0}", connection.Method);

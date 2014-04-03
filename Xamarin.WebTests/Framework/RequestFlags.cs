@@ -32,7 +32,8 @@ namespace Xamarin.WebTests.Framework
 		None,
 		Redirected		= 1,
 		RedirectedAsGet		= 2,
-		ExplicitlySetLength	= 4
+		ExplicitlySetLength	= 4,
+		SendContinue		= 8
 	}
 }
 

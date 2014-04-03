@@ -49,6 +49,7 @@ namespace Xamarin.WebTests.Server
 
 			reader = new StreamReader (stream);
 			writer = new StreamWriter (stream);
+			writer.AutoFlush = true;
 			headers = new Dictionary<string, string> ();
 		}
 

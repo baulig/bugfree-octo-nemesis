@@ -157,9 +157,9 @@ namespace Xamarin.WebTests.Server
 			return CheckTransferMode (connection, effectiveFlags);
 		}
 
-		protected override bool DoHandleRequest (Connection connection)
+		protected override bool DoHandleRequest (Connection connection, RequestFlags effectiveFlags)
 		{
-			if (!HandlePostRequest (connection, Flags))
+			if (!HandlePostRequest (connection, effectiveFlags))
 				return false;
 
 			WriteSuccess (connection);
@@ -185,6 +185,8 @@ namespace Xamarin.WebTests.Server
 				return true;
 			}
 
+			string body;
+
 			switch (Mode) {
 			case TransferMode.Default:
 				if (Body != null) {
@@ -193,7 +195,8 @@ namespace Xamarin.WebTests.Server
 						return false;
 					}
 
-					return ReadStaticBody (connection);
+					body = ReadBody (connection, false, effectiveFlags);
+					break;
 				} else {
 					if (haveContentLength) {
 						WriteError (connection, "Content-Length header not allowed");
@@ -214,9 +217,16 @@ namespace Xamarin.WebTests.Server
 					return false;
 				}
 
-				return ReadStaticBody (connection);
+				body = ReadBody (connection, false, effectiveFlags);
+				break;
 
 			case TransferMode.Chunked:
+				if ((effectiveFlags & RequestFlags.Redirected) != 0) {
+					// MS rewrites this.
+					if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+						goto case TransferMode.ContentLength;
+				}
+
 				if (haveContentLength) {
 					WriteError (connection, "Content-Length header not allowed");
 					return false;
@@ -233,18 +243,29 @@ namespace Xamarin.WebTests.Server
 					return false;
 				}
 
-				var body = ReadChunkedBody (connection);
-				Console.WriteLine ("CHUNKED BODY: |{0}|", body);
-
-				return true;
+				body = ReadBody (connection, true, effectiveFlags);
+				break;
 
 			default:
 				WriteError (connection, "Unknown TransferMode: '{0}'", Mode);
 				return false;
 			}
+
+			Debug (0, "BODY", body);
+			return true;
 		}
 
-		bool ReadStaticBody (Connection connection)
+		string ReadBody (Connection connection, bool chunked, RequestFlags effectiveFlags)
+		{
+			Console.WriteLine ("READ BODY: {0} {1}", chunked, effectiveFlags);
+			if ((effectiveFlags & RequestFlags.SendContinue) != 0) {
+				WriteSimpleResponse (connection, 100, "CONTINUE", null);
+			}
+
+			return chunked ? ReadChunkedBody (connection) : ReadStaticBody (connection);
+		}
+
+		string ReadStaticBody (Connection connection)
 		{
 			var length = int.Parse (connection.Headers ["Content-Length"]);
 
@@ -262,16 +283,18 @@ namespace Xamarin.WebTests.Server
 				Thread.Sleep (delay);
 
 				var size = Math.Min (length - offset, chunkSize);
+				Console.WriteLine ("READ: {0} {1}", offset, size);
 				int ret = connection.RequestReader.Read (buffer, offset, size);
-				if (ret <= 0) {
-					WriteError (connection, "Failed to read body.");
-					return false;
-				}
+				Console.WriteLine ("READ #1: {0}", ret);
+				if (ret <= 0)
+					throw new InvalidOperationException ();
 
 				offset += ret;
 			}
 
-			return true;
+			var body = new string (buffer);
+			Console.WriteLine ("BODY: {0}", body);
+			return body;
 		}
 
 		string ReadChunkedBody (Connection connection)
@@ -280,6 +303,8 @@ namespace Xamarin.WebTests.Server
 				throw new InvalidOperationException ();
 
 			var body = new StringBuilder ();
+
+			Console.WriteLine ("READ CHUNKED BODY");
 
 			do {
 				var header = connection.RequestReader.ReadLine ();

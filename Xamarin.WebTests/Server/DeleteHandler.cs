@@ -47,7 +47,7 @@ namespace Xamarin.WebTests.Server
 			}
 		}
 
-		protected override bool DoHandleRequest (Connection connection)
+		protected override bool DoHandleRequest (Connection connection, RequestFlags effectiveFlags)
 		{
 			if (!connection.Method.Equals ("DELETE")) {
 				WriteError (connection, "Wrong method: {0}", connection.Method);

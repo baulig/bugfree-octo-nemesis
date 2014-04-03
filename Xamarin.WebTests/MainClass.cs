@@ -1,4 +1,5 @@
-﻿//
+﻿#if !NUNIT
+//
 // MainClass.cs
 //
 // Author:
@@ -61,4 +62,4 @@ namespace Xamarin.WebTests
 		}
 	}
 }
-
+#endif

@@ -25,9 +25,13 @@
 // THE SOFTWARE.
 using System;
 using System.Net;
+using System.Text;
+using System.Globalization;
 
 namespace Xamarin.WebTests.Server
 {
+	using Framework;
+
 	public class RedirectHandler : Handler
 	{
 		public Handler Target {
@@ -45,6 +49,11 @@ namespace Xamarin.WebTests.Server
 			Target = target;
 			Code = code;
 
+			if ((target.Flags & RequestFlags.SendContinue) != 0)
+				Flags |= RequestFlags.SendContinue;
+			else
+				Flags &= ~RequestFlags.SendContinue;
+
 			if (!IsRedirectStatus (code))
 				throw new InvalidOperationException ();
 		}
@@ -55,10 +64,11 @@ namespace Xamarin.WebTests.Server
 			return icode == 301 || icode == 302 || icode == 303 || icode == 307;
 		}
 
-		protected override bool DoHandleRequest (Connection connection)
+		protected override bool DoHandleRequest (Connection connection, RequestFlags effectiveFlags)
 		{
+			var sendContinue = (effectiveFlags & RequestFlags.SendContinue) != 0;
 			var postHandler = Target as PostHandler;
-			if (postHandler != null) {
+			if (!sendContinue && postHandler != null) {
 				if (!postHandler.HandlePostRequest (connection))
 					return false;
 			}
